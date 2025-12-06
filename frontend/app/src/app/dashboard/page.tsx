@@ -314,14 +314,87 @@ export default function DashboardPage() {
     }
   }
 
+  const applyLocationToMap = (coords: { lat: number; lng: number }) => {
+    const refSnapshot = leafletRef.current
+    if (refSnapshot.map) {
+      refSnapshot.map.setView([coords.lat, coords.lng], 15)
+    }
+    if (refSnapshot.marker) {
+      refSnapshot.marker.setLatLng([coords.lat, coords.lng])
+    }
+  }
+
+  useEffect(() => {
+    if (!showModal) return
+    if (!navigator.geolocation) {
+      setError("Tu navegador no soporta geolocalización")
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        setLocation(coords)
+        applyLocationToMap(coords)
+      },
+      () => {
+        setError("Permite el acceso a la ubicación para enviar el reporte.")
+      },
+      { enableHighAccuracy: true }
+    )
+  }, [showModal])
+
+  useEffect(() => {
+    if (!showModal) return
+    if (!navigator.permissions || !navigator.permissions.query) return
+
+    let permissionStatus: PermissionStatus | null = null
+
+    const handlePermission = (status: PermissionStatus) => {
+      if (status.state === "granted") {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+            setLocation(coords)
+            applyLocationToMap(coords)
+            setError("")
+          },
+          () => {
+            setError("No se pudo obtener tu ubicación.")
+          },
+          { enableHighAccuracy: true }
+        )
+      } else {
+        setLocation(null)
+        setError("Permite el acceso a la ubicación para enviar el reporte.")
+      }
+    }
+
+    navigator.permissions
+      .query({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        permissionStatus = status
+        handlePermission(status)
+        status.onchange = () => handlePermission(status)
+      })
+      .catch(() => {
+        // ignore permission query errors
+      })
+
+    return () => {
+      if (permissionStatus) {
+        permissionStatus.onchange = null
+      }
+    }
+  }, [showModal])
+
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="relative h-screen w-screen md:overflow-hidden overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20">
       <div className="absolute top-0 left-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-border/40 shadow-sm">
         <div className="px-4 py-4 max-w-5xl mx-auto flex items-center justify-between">
           <Logo size="md" />
           <Button
             onClick={() => setShowModal(true)}
-            className="rounded-full h-10 px-4"
+            className="rounded-full h-10 px-3 text-sm font-semibold"
           >
             Reportar incidente
           </Button>
@@ -339,17 +412,17 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="absolute inset-0 top-[72px] flex flex-col">
+      <div className="md:absolute md:inset-0 md:top-[72px] relative flex flex-col">
         <div className="flex flex-1 flex-col md:flex-row overflow-hidden">
-          <div className="w-full md:w-[60%] h-[60vh] md:h-full relative overflow-hidden z-0">
+          <div className="w-full h-[60vh] md:h-full relative overflow-hidden z-0 shrink-0">
             <div
               ref={mapRef}
               className="absolute inset-0 z-0"
             />
           </div>
 
-          <div className="w-full md:w-[40%] md:flex-[0_0_40%] flex-1 md:h-full bg-white/85 backdrop-blur-sm border-l border-border/60">
-            <Card className="w-full h-full flex flex-col rounded-none shadow-sm border border-border/60 bg-white/90">
+          <div className="w-full md:w-auto md:absolute md:top-6 md:right-6 md:bottom-6 md:max-w-[420px] md:min-w-[320px] bg-white/85 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl z-20 mt-4 md:mt-0">
+            <Card className="w-full h-full flex flex-col rounded-xl shadow-sm border border-border/60 bg-white/95 md:max-h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
@@ -367,7 +440,7 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 flex-1 overflow-y-auto md:h-auto">
-                <div className="flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex flex-col md:flex-row md:items-center gap-3 pt-6">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -547,7 +620,7 @@ export default function DashboardPage() {
                       placeholder="tu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-12 text-base rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="h-11 text-sm rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
 
@@ -648,7 +721,7 @@ export default function DashboardPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={2}
-                      className="text-base rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="text-sm rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
 
@@ -656,7 +729,7 @@ export default function DashboardPage() {
                     <Button
                       type="submit"
                       disabled={loading || !photoPreview}
-                      className="flex-1 h-12 text-base font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                      className="flex-1 h-11 text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                       <Send className="mr-2 h-5 w-5" />
                       {loading ? "Enviando..." : "Enviar incidente"}
@@ -672,7 +745,7 @@ export default function DashboardPage() {
                         setPhotoPreview(null)
                         setError("")
                       }}
-                      className="h-12 text-base rounded-xl"
+                      className="h-11 text-sm rounded-xl"
                     >
                       Cancelar
                     </Button>
