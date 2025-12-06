@@ -1,4 +1,9 @@
-export { auth as middleware } from "@/app/api/auth/[...nextauth]/route"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+
+export async function middleware(request: NextRequest) {
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: ["/dashboard/:path*"],

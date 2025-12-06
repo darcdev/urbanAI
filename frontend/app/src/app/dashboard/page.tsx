@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Camera, Send, LogOut, AlertCircle } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 interface Incident {
   id: string
@@ -31,17 +32,10 @@ export default function DashboardPage() {
   const [success, setSuccess] = useState("")
   const [incidents, setIncidents] = useState<Incident[]>([])
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login")
-    }
-  }, [status, router])
 
   useEffect(() => {
-    if (session) {
-      fetchIncidents()
-    }
-  }, [session])
+    fetchIncidents()
+  }, [])
 
   useEffect(() => {
     // Obtener ubicación del usuario
@@ -140,33 +134,26 @@ export default function DashboardPage() {
     }
   }
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-white">Cargando...</div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return null
-  }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white bg-pattern">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">UrbanAI</h1>
-            <p className="text-muted-foreground">Bienvenido, {session.user?.name}</p>
+            <Logo size="lg" />
+            <p className="text-muted-foreground">
+              {session?.user?.name ? `Bienvenido, ${session.user.name}` : "Bienvenido"}
+            </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Cerrar sesión
-          </Button>
+          {session && (
+            <Button
+              variant="outline"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar sesión
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
