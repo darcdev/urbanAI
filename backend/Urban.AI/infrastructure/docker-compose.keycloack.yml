@@ -1,0 +1,5 @@
+services:
+  web-api:
+    depends_on:
+      identity-keycloak:
+        condition: service_healthy

@@ -1,0 +1,5 @@
+services:
+  web-api:
+    depends_on:
+      db-postgresql:
+        condition: service_healthy
