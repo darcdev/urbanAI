@@ -14,6 +14,7 @@ using Urban.AI.Application.Common.Abstractions.Caching;
 using Urban.AI.Application.Common.Abstractions.Clock;
 using Urban.AI.Application.Common.Abstractions.Storage;
 using Urban.AI.Domain.Common.Abstractions;
+using Urban.AI.Domain.Geography;
 using Urban.AI.Domain.Users;
 using Urban.AI.Infrastructure.Auth.Authentication;
 using Urban.AI.Infrastructure.Auth.Authorization;
@@ -21,6 +22,7 @@ using Urban.AI.Infrastructure.Caching;
 using Urban.AI.Infrastructure.Clock;
 using Urban.AI.Infrastructure.Database;
 using Urban.AI.Infrastructure.Database.Config;
+using Urban.AI.Infrastructure.Database.Repositories.Geography;
 using Urban.AI.Infrastructure.Database.Repositories.User;
 using Urban.AI.Infrastructure.Storage;
 using Urban.AI.Infrastructure.Storage.OptionsSetup;
@@ -47,6 +49,7 @@ public static class DependencyInjection
 
         AddDatabase(services, configuration);
         AddRepositories(services);
+        AddGeographyRepositories(services);
         AddAuthentication(services, configuration);
         AddAuthorization(services);
         AddCaching(services, configuration);
@@ -74,6 +77,13 @@ public static class DependencyInjection
     private static void AddRepositories(IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
+    }
+
+    private static void AddGeographyRepositories(IServiceCollection services)
+    {
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<IMunicipalityRepository, MunicipalityRepository>();
+        services.AddScoped<ITownshipRepository, TownshipRepository>();
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
