@@ -4,6 +4,7 @@ namespace Urban.AI.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Urban.AI.Application.Common.Exceptions;
 using Urban.AI.Domain.Common.Abstractions;
+using Urban.AI.Domain.Geography;
 using Urban.AI.Domain.Users;
 #endregion
 
@@ -11,6 +12,9 @@ public sealed class ApplicationDbContext(DbContextOptions options) : DbContext(o
 {
     #region DbSets
     public DbSet<User> Users { get; set; }
+    public DbSet<Department> Departments { get; set; }
+    public DbSet<Municipality> Municipalities { get; set; }
+    public DbSet<Township> Townships { get; set; }
     #endregion
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

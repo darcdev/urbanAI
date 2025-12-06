@@ -4,7 +4,9 @@ namespace Urban.AI.Application;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Urban.AI.Application.Common.Abstractions.Behaviors;
+using Urban.AI.Application.Geography.Common;
 #endregion
+
 
 public static class DependencyInjection
 {
@@ -22,6 +24,7 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
+        services.AddTransient<IGeographyDataParser, GeographyDataParser>();
 
         return services;
     }
