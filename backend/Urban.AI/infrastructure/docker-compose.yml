@@ -1,0 +1,161 @@
+name: ${PROJECT_NAME}
+
+services:
+
+  # ASP.NET Core Web API
+  web-api:
+    image: ${PROJECT_NAME}.webapi
+    container_name: webapi
+    build:
+      context: ..
+      dockerfile: src/${PATH_PROJECT_NAME}.WebApi/Dockerfile
+    profiles:
+      - webapi
+    # depends_on defined in stack overrides
+    ports:
+      - ${API_HTTP_PORT}:8080
+      - ${API_HTTPS_PORT}:8081
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_HTTPS_PORT=${API_HTTPS_PORT}
+    restart: on-failure
+    networks:
+      - network-public
+     
+  # SQL Server database
+  db-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver.db
+    restart: on-failure
+    profiles:
+      - sqlserver
+    env_file:
+      - sqlserver.env
+    ports:
+      - '${MSSQL_PORT_HOST:-1433}:1433'
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - network-public
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/127.0.0.1/1433' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # PostgreSQL database
+  db-postgresql:
+    image: postgres:17
+    container_name: postgres.db
+    restart: on-failure
+    profiles:
+      - postgres
+    env_file:
+      - postgres.env
+    environment:
+      POSTGRES_DB: ${PROJECT_NAME}
+    volumes:
+      - vol_postgres_db:/var/lib/postgresql/data
+    ports:
+      - '${PG_PORT_HOST:-5432}:5432'
+    networks:
+      - network-public
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  # MongoDB
+  db-mongo:
+    image: mongo:latest
+    container_name: mongo.db
+    restart: on-failure
+    profiles:
+      - mongo
+    env_file:
+      - mongo.env
+    ports:
+      - '${MONGO_PORT_HOST:-27017}:27017'
+    volumes:
+      - vol_mongo:/data/db
+    networks:
+      - network-public
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/127.0.0.1/27017' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # MinIO object storage
+  minio-storage:
+    image: minio/minio:latest
+    container_name: minio.storage
+    restart: on-failure
+    profiles:
+      - minio
+    env_file:
+      - minio.env
+    volumes:
+      - vol_minio_storage:/data
+    ports:
+      - '${MINIO_API_HOST_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_HOST_PORT:-9001}:9001'
+    networks:
+      - network-public
+    command: server --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/127.0.0.1/9000' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+  
+  redis-cache:
+    image: redis:latest
+    container_name: redis.cache
+    profiles:
+      - redis
+    restart: on-failure
+    ports:
+      - '${REDIS_PORT_HOST:-6379}:6379'
+    networks:
+      - network-public
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  identity-keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
+    container_name: keycloak.identity
+    restart: on-failure
+    profiles:
+      - keycloak
+    command: start-dev --import-realm
+    env_file:
+      - keycloak.env
+    volumes:
+      - vol_keycloak_data:/opt/keycloak/data
+      - ./resources/application-realm-export.json:/opt/keycloak/data/import/realm.json
+    ports:
+      - '${KEYCLOAK_HTTP_PORT:-18080}:8080'
+      
+networks:
+  network-public:
+    name: ${PROJECT_NAME}-network-public
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+    driver: local
+  vol_minio_storage: {}
+  vol_postgres_db: {}
+  vol_mongo: {}
+  vol_redis_cache: {}
+  vol_keycloak_data: {}

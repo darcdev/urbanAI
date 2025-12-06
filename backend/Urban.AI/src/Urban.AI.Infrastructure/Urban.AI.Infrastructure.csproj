@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Minio" Version="6.0.5" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Storage\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Urban.AI.Application\Urban.AI.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Auth\Resources\KeycloakResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>KeycloakResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Storage\Resources\StorageResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StorageResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Auth\Resources\KeycloakResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>KeycloakResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Storage\Resources\StorageResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>StorageResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
