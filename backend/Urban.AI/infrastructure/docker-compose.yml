@@ -128,12 +128,16 @@ services:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
     container_name: keycloak.identity
     restart: on-failure
-    command: start-dev --import-realm --health-enabled=true
+    command: start-dev --import-realm --health-enabled=true --http-enabled=true --hostname-strict=false --hostname-strict-https=false
     env_file:
       - keycloak.env
     environment:
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
+      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_PROXY_HEADERS=xforwarded
     volumes:
       - vol_keycloak_data:/opt/keycloak/data
       - ./resources/application-realm-export.json:/opt/keycloak/data/import/realm.json
