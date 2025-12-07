@@ -6,7 +6,10 @@ class ChatService {
   async sendMessage(message: string, sessionId?: string): Promise<string> {
     const response = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: JSON.stringify({ message, sessionId }),
       mode: 'cors',
     });
