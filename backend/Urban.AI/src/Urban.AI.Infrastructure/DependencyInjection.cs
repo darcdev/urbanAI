@@ -33,6 +33,8 @@ using Urban.AI.Infrastructure.Database.Repositories.User;
 using Urban.AI.Infrastructure.Email;
 using Urban.AI.Infrastructure.Storage;
 using Urban.AI.Infrastructure.Storage.OptionsSetup;
+using Urban.AI.Infrastructure.WhatsApp;
+using Urban.AI.Application.Common.Abstractions.WhatsApp;
 using AuthenticationOptions = Auth.Authentication.AuthenticationOptions;
 using AuthenticationService = Auth.Authentication.AuthenticationService;
 using IAuthenticationService = Application.Common.Abstractions.Authentication.IAuthenticationService;
@@ -65,6 +67,7 @@ public static class DependencyInjection
         AddCaching(services, configuration);
         AddStorage(services, configuration);
         AddEmail(services, configuration);
+        AddWhatsAppServices(services);
 
         return services;
     }
@@ -180,6 +183,12 @@ public static class DependencyInjection
     {
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptionsSectionName));
         services.AddScoped<IEmailService, EmailService>();
+    }
+
+    private static void AddWhatsAppServices(IServiceCollection services)
+    {
+        services.AddHttpClient<IWhatsAppMediaService, WhatsAppMediaService>();
+        services.AddHttpClient<IWhatsAppMessagingService, WhatsAppMessagingService>();
     }
     #endregion
 

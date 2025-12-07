@@ -2,7 +2,6 @@ namespace Urban.AI.Domain.Common.Abstractions;
 
 using System.Diagnostics.CodeAnalysis;
 
-// TODO: Improve Result class to support Failure without TValue generic type
 public class Result
 {
     public Result(bool isSuccess, Error error)

@@ -12,7 +12,7 @@ using Urban.AI.Domain.Leaders;
 public sealed class Incident : Entity
 {
     #region Constants
-    public const int RadicateNumberLength = 15;
+    public const int RadicateNumberLength = 11;
     public const int CaptionMaxLength = 200;
     public const int DescriptionMaxLength = 1000;
     public const int CommentMaxLength = 500;

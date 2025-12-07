@@ -88,7 +88,6 @@ internal sealed class CreateLeaderHandler : ICommandHandler<CreateLeaderCommand,
         user.SetIdentityId(identityId);
         _userRepository.Add(user);
 
-        // TODO: fix get roles
         var assignRoleResult = await _identityProvider.AssignRolesToUserAsync(
             identityId,
             [LeaderRoleName],
