@@ -37,9 +37,9 @@ internal sealed class UploadProfilePictureHandler : ICommandHandler<UploadProfil
 
     public async Task<Result<string>> Handle(UploadProfilePictureCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userContext.UserId;
+        var email = _userContext.Email;
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
         if (user is null) return Result.Failure<string>(UserErrors.NotFound);
         if (user.UserDetails is null) return Result.Failure<string>(UserErrors.UserDetailsNotCompleted);
 
@@ -49,8 +49,8 @@ internal sealed class UploadProfilePictureHandler : ICommandHandler<UploadProfil
             await DeletePreviousProfilePicture(currentPictureUrl, cancellationToken);
         }
 
-        var filename = $"{userId}{ImageExtension}";
-        var path = $"profiles/{userId}";
+        var filename = $"{user.Id}{ImageExtension}";
+        var path = $"profiles/{user.Id}";
 
         var file = File.CreateForSave(
             filename,

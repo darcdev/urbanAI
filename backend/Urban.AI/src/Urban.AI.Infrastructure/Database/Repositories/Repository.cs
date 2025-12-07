@@ -5,9 +5,10 @@ using Urban.AI.Domain.Common.Abstractions;
 using Urban.AI.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using BaseEntity = Urban.AI.Domain.Common.Abstractions.Entity;
 #endregion
 
-public abstract class Repository<T> : IRepository<T> where T : Entity
+public abstract class Repository<T> : IRepository<T> where T : BaseEntity
 {
     #region Constants
     private const string IsDeletedPropertyName = "IsDeleted";

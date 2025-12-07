@@ -1,46 +1,14 @@
 namespace Urban.AI.Infrastructure.Auth.Authorization;
 
 #region Usings
-using Urban.AI.Domain.Users;
-using Urban.AI.Infrastructure.Auth.Authentication;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
 #endregion
 
 internal sealed class CustomClaimsTransformation : IClaimsTransformation
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public CustomClaimsTransformation(IServiceProvider serviceProvider)
+    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
-        _serviceProvider = serviceProvider;
-    }
-
-    public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
-    {
-        if (principal.Identity is not { IsAuthenticated: true } ||
-            principal.HasClaim(claim => claim.Type == ClaimTypes.Role) &&
-            principal.HasClaim(claim => claim.Type == JwtRegisteredClaimNames.Sub))
-        {
-            return principal;
-        }
-
-        using var scope = _serviceProvider.CreateScope();
-        var authorizationService = scope.ServiceProvider.GetRequiredService<AuthorizationService>();
-        var identityId = principal.GetIdentityId();
-        var userRoles = await authorizationService.GetRolesForUserAsync(identityId);
-
-        var claimsIdentity = new ClaimsIdentity();
-        claimsIdentity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub, userRoles.UserId.ToString()));
-
-        foreach (Role role in userRoles.Roles)
-        {
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
-        }
-
-        principal.AddIdentity(claimsIdentity);
-        return principal;
+        return Task.FromResult(principal);
     }
 }

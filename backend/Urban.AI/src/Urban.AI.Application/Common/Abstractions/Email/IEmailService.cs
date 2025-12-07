@@ -15,4 +15,13 @@ public interface IEmailService
         string email,
         string temporaryPassword,
         CancellationToken cancellationToken = default);
+
+    Task<bool> SendOrganizationCredentialsEmailAsync(
+        string toEmail,
+        string firstName,
+        string lastName,
+        string email,
+        string organizationName,
+        string temporaryPassword,
+        CancellationToken cancellationToken = default);
 }

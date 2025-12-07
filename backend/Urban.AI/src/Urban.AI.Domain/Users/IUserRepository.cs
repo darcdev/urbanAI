@@ -8,4 +8,5 @@ public interface IUserRepository : IRepository<User>
     Task<IEnumerable<User>> GetAllWithRolesAsync(CancellationToken cancellationToken);
     Task<User?> GetByIdWithRolesAsync(Guid id, CancellationToken cancellationToken);
     Task<User?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken);
+    Task<User?> GetByEmailWithDetailsAsync(string email, CancellationToken cancellationToken);
 }

@@ -28,6 +28,26 @@ internal sealed class EmailService : IEmailService
             <p>The UrbanAI Team</p>
         </body>
         </html>";
+
+    private const string OrganizationCredentialsSubject = "Welcome to UrbanAI - Organization Access Credentials";
+    private const string OrganizationCredentialsBodyTemplate = @"
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <h2>Welcome to UrbanAI, {0} {1}!</h2>
+            <p>Your organization <strong>{4}</strong> has been registered in the UrbanAI system.</p>
+            <p>Your login credentials are:</p>
+            <ul>
+                <li><strong>Email:</strong> {2}</li>
+                <li><strong>Temporary Password:</strong> {3}</li>
+            </ul>
+            <p>As an organization user, you will have access to statistical reports and analytics.</p>
+            <p>Please login to the system and change your password as soon as possible.</p>
+            <p><strong>Important:</strong> Keep this information secure and do not share it with anyone.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>The UrbanAI Team</p>
+        </body>
+        </html>";
     #endregion
 
     private readonly EmailOptions _emailOptions;
@@ -80,5 +100,18 @@ internal sealed class EmailService : IEmailService
     {
         var body = string.Format(LeaderCredentialsBodyTemplate, firstName, lastName, email, temporaryPassword);
         return await SendEmailAsync(toEmail, LeaderCredentialsSubject, body, cancellationToken);
+    }
+
+    public async Task<bool> SendOrganizationCredentialsEmailAsync(
+        string toEmail,
+        string firstName,
+        string lastName,
+        string email,
+        string organizationName,
+        string temporaryPassword,
+        CancellationToken cancellationToken = default)
+    {
+        var body = string.Format(OrganizationCredentialsBodyTemplate, firstName, lastName, email, temporaryPassword, organizationName);
+        return await SendEmailAsync(toEmail, OrganizationCredentialsSubject, body, cancellationToken);
     }
 }

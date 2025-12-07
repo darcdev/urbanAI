@@ -14,6 +14,7 @@ using Urban.AI.Application.Common.Abstractions.Clock;
 using Urban.AI.Application.Common.Abstractions.Email;
 using Urban.AI.Application.Common.Abstractions.Storage;
 using Urban.AI.Domain.Common.Abstractions;
+using Urban.AI.Domain.Organizations;
 using Urban.AI.Domain.Geography;
 using Urban.AI.Domain.Incidents;
 using Urban.AI.Domain.Leaders;
@@ -24,6 +25,7 @@ using Urban.AI.Infrastructure.Auth.Authorization;
 using Urban.AI.Infrastructure.Clock;
 using Urban.AI.Infrastructure.Database;
 using Urban.AI.Infrastructure.Database.Config;
+using Urban.AI.Infrastructure.Database.Repositories.OrganizationUser;
 using Urban.AI.Infrastructure.Database.Repositories.Geography;
 using Urban.AI.Infrastructure.Database.Repositories.Incident;
 using Urban.AI.Infrastructure.Database.Repositories.Leader;
@@ -87,6 +89,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ILeaderRepository, LeaderRepository>();
         services.AddScoped<IIncidentRepository, IncidentRepository>();
+        services.AddScoped<IOrganizationRepository, OrganizationRepository>();
     }
 
     private static void AddGeographyRepositories(IServiceCollection services)

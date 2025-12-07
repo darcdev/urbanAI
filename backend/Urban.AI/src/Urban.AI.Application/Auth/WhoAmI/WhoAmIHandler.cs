@@ -24,14 +24,14 @@ internal sealed class WhoAmIHandler : IQueryHandler<WhoAmIUserQuery, Dtos.User>
         WhoAmIUserQuery request,
         CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByIdWithDetailsAsync(_userContext.UserId, cancellationToken);
+        var user = await _userRepository.GetByEmailWithDetailsAsync(_userContext.Email, cancellationToken);
 
         if (user is null)
         {
             return Result.Failure<Dtos.User>(UserErrors.NotFound);
         }
 
-        Dtos.User userDto = user.ToDto();
+        Dtos.User userDto = user.ToDto(_userContext.Roles);
 
         return userDto;
     }
