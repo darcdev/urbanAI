@@ -119,8 +119,8 @@ export default function RegisterPage() {
                 className="bg-[#0943b5] p-3 rounded-md cursor-pointer hover:opacity-90 transition-opacity"
               >
                 <Image
-                  src="/images/logoGovCo.png"
-                  alt="UrbanAI"
+                  src="https://www.mintic.gov.co/portal/715/articles-406089_foto_marquesina.jpg"
+                  alt="GovCo"
                   width={100}
                   height={40}
                   className="object-contain"

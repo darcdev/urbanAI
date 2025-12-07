@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         port: "9000",
         pathname: "/incident-images/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.mintic.gov.co",
+        pathname: "/portal/**",
+      },
     ],
   },
 };
