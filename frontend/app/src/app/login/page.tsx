@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
+import { authService } from "@/lib/api/auth.service"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,20 +23,21 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const result = await signIn("credentials", {
+      await authService.login({
         email,
         password,
-        redirect: false,
       })
-
-      if (result?.error) {
-        setError("Credenciales inválidas")
-      } else {
-        router.push("/dashboard")
+      const isValid = await authService.verifyToken();
+      
+      if (isValid) {
+        router.push("/admin")
         router.refresh()
+      } else {
+        throw new Error('El token no es válido. Por favor contacta al administrador.');
       }
     } catch (error) {
-      setError("Error al iniciar sesión")
+      const errorMessage = error instanceof Error ? error.message : "Error al iniciar sesión"
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
