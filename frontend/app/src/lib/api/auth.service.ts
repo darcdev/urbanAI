@@ -124,7 +124,6 @@ class AuthService {
       }
 
       const response = await fetch(`${this.baseUrl}/whoami`, {
-      const response = await fetch(`${this.baseUrl}/whoami`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -132,6 +131,7 @@ class AuthService {
         },
         mode: 'cors',
       });
+
       if (!response.ok) {
         if (response.status === 401) {
           this.logout();
