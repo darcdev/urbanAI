@@ -8,7 +8,7 @@ services:
     container_name: webapi
     build:
       context: ..
-      dockerfile: src/${PATH_PROJECT_NAME}.WebApi/Dockerfile
+      dockerfile: src/Urban.AI.WebApi/Dockerfile
     depends_on:
       db-postgresql:
         condition: service_healthy
