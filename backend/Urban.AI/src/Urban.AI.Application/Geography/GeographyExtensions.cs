@@ -11,6 +11,7 @@ internal static class GeographyExtensions
     public static DepartmentResponse ToDto(this Department department)
     {
         return new DepartmentResponse(
+            department.Id,
             department.DepartmentDaneCode,
             department.Name,
             department.Latitude,
@@ -27,6 +28,7 @@ internal static class GeographyExtensions
     public static MunicipalityResponse ToDto(this Municipality municipality)
     {
         return new MunicipalityResponse(
+            municipality.Id,
             municipality.MunicipalityDaneCode,
             municipality.Name,
             municipality.DepartmentDaneCode,
@@ -44,6 +46,7 @@ internal static class GeographyExtensions
     public static TownshipResponse ToDto(this Township township)
     {
         return new TownshipResponse(
+            township.Id,
             township.TownshipDaneCode,
             township.Name,
             township.MunicipalityDaneCode);

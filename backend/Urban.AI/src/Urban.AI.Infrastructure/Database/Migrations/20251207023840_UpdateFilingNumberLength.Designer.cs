@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Urban.AI.Infrastructure.Database;
@@ -11,9 +12,11 @@ using Urban.AI.Infrastructure.Database;
 namespace Urban.AI.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251207023840_UpdateFilingNumberLength")]
+    partial class UpdateFilingNumberLength
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,6 +223,12 @@ namespace Urban.AI.Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("FilingNumber")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
+                        .HasColumnName("filing_number");
+
                     b.Property<string>("ImagePath")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -239,12 +248,6 @@ namespace Urban.AI.Infrastructure.Database.Migrations
                         .HasColumnType("text")
                         .HasColumnName("priority");
 
-                    b.Property<string>("RadicateNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)")
-                        .HasColumnName("radicate_number");
-
                     b.Property<string>("Severity")
                         .HasColumnType("text")
                         .HasColumnName("severity");
@@ -260,6 +263,10 @@ namespace Urban.AI.Infrastructure.Database.Migrations
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_incidents_created_at");
 
+                    b.HasIndex("FilingNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_incidents_filing_number");
+
                     b.HasIndex("LeaderId")
                         .HasDatabaseName("ix_incidents_leader_id");
 
@@ -268,10 +275,6 @@ namespace Urban.AI.Infrastructure.Database.Migrations
 
                     b.HasIndex("Priority")
                         .HasDatabaseName("ix_incidents_priority");
-
-                    b.HasIndex("RadicateNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_incidents_radicate_number");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_incidents_status");

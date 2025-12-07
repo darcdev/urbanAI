@@ -1,105 +1,137 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, Eye, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Modal } from "../shared/Modal";
-
-// Datos de ejemplo
-const mockUsers = [
-  {
-    id: 1,
-    name: "Juan Pérez",
-    email: "juan.perez@example.com",
-    department: "Antioquia",
-    municipality: "Medellín",
-  },
-  {
-    id: 2,
-    name: "María García",
-    email: "maria.garcia@example.com",
-    department: "Cundinamarca",
-    municipality: "Bogotá",
-  },
-  {
-    id: 3,
-    name: "Carlos Rodríguez",
-    email: "carlos.rodriguez@example.com",
-    department: "Valle del Cauca",
-    municipality: "Cali",
-  },
-  {
-    id: 4,
-    name: "Ana Martínez",
-    email: "ana.martinez@example.com",
-    department: "Atlántico",
-    municipality: "Barranquilla",
-  },
-  {
-    id: 5,
-    name: "Pedro López",
-    email: "pedro.lopez@example.com",
-    department: "Santander",
-    municipality: "Bucaramanga",
-  },
-];
-
-const departments = [
-  "Antioquia",
-  "Cundinamarca",
-  "Valle del Cauca",
-  "Atlántico",
-  "Santander",
-  "Bolívar",
-  "Caldas",
-  "Quindío",
-  "Risaralda",
-  "Tolima",
-];
+import { Modal } from "../../../shared/Modal";
+import { geographyService, leadersService, Department, Municipality, Leader } from "@/lib/api";
 
 export function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<typeof mockUsers[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Leader | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     department: "",
+    departmentId: "",
+    departmentDaneCode: "",
     municipality: "",
+    municipalityId: "",
+    latitude: 0,
+    longitude: 0,
   });
 
-  const filteredUsers = mockUsers.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.municipality.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [loadingLeaders, setLoadingLeaders] = useState(false);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [loadingMunicipalities, setLoadingMunicipalities] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Nuevo usuario:", formData);
-    // Aquí iría la lógica para crear el usuario
-    setIsModalOpen(false);
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      department: "",
-      municipality: "",
-    });
+  useEffect(() => {
+    loadDepartments();
+    loadLeaders();
+  }, []);
+
+  useEffect(() => {
+    if (formData.departmentDaneCode) {
+      loadMunicipalities(formData.departmentDaneCode);
+    } else {
+      setMunicipalities([]);
+    }
+  }, [formData.departmentDaneCode]);
+
+  const loadLeaders = async () => {
+    try {
+      setLoadingLeaders(true);
+      const data = await leadersService.getAll();
+      setLeaders(data);
+    } catch {
+      setLeaders([]);
+    } finally {
+      setLoadingLeaders(false);
+    }
   };
 
-  const handleViewUser = (user: typeof mockUsers[0]) => {
-    setSelectedUser(user);
+  const loadDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+      const data = await geographyService.getDepartments();
+      setDepartments(data);
+    } catch {
+      setDepartments([]);
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
+
+  const loadMunicipalities = async (departmentDaneCode: string) => {
+    try {
+      setLoadingMunicipalities(true);
+      const data = await geographyService.getMunicipalities(departmentDaneCode);
+      setMunicipalities(data);
+    } catch {
+      setMunicipalities([]);
+    } finally {
+      setLoadingMunicipalities(false);
+    }
+  };
+
+  const filteredUsers = leaders.filter(
+    (leader) =>
+      `${leader.firstName} ${leader.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      leader.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setSubmitting(true);
+      
+      await leadersService.create({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        departmentId: formData.departmentId,
+        municipalityId: formData.municipalityId,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      });
+      await loadLeaders();
+      
+      setIsModalOpen(false);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        department: "",
+        departmentId: "",
+        departmentDaneCode: "",
+        municipality: "",
+        municipalityId: "",
+        latitude: 0,
+        longitude: 0,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleViewUser = (leader: Leader) => {
+    setSelectedUser(leader);
     setIsViewModalOpen(true);
   };
 
   return (
     <>
-      {/* Modal para ver detalles de usuario */}
       <Modal
         isOpen={isViewModalOpen}
         onClose={() => {
@@ -116,7 +148,7 @@ export function Users() {
                   Nombre completo
                 </label>
                 <p className="text-base font-medium text-foreground">
-                  {selectedUser.name}
+                  {selectedUser.firstName} {selectedUser.lastName}
                 </p>
               </div>
 
@@ -131,19 +163,19 @@ export function Users() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
-                  Departamento
+                  ID Departamento
                 </label>
                 <p className="text-base font-medium text-foreground">
-                  {selectedUser.department}
+                  {selectedUser.departmentId}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
-                  Municipio
+                  ID Municipio
                 </label>
                 <p className="text-base font-medium text-foreground">
-                  {selectedUser.municipality}
+                  {selectedUser.municipalityId}
                 </p>
               </div>
             </div>
@@ -163,7 +195,6 @@ export function Users() {
         )}
       </Modal>
 
-      {/* Modal para agregar usuario */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -172,14 +203,29 @@ export function Users() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
-              Nombre completo
+              Nombre
             </label>
             <Input
               type="text"
-              placeholder="Ingrese el nombre completo"
-              value={formData.name}
+              placeholder="Ingrese el nombre"
+              value={formData.firstName}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, firstName: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Apellido
+            </label>
+            <Input
+              type="text"
+              placeholder="Ingrese el apellido"
+              value={formData.lastName}
+              onChange={(e) =>
+                setFormData({ ...formData, lastName: e.target.value })
               }
               required
             />
@@ -221,17 +267,30 @@ export function Users() {
               Departamento
             </label>
             <select
-              value={formData.department}
-              onChange={(e) =>
-                setFormData({ ...formData, department: e.target.value })
-              }
+              value={formData.departmentDaneCode}
+              onChange={(e) => {
+                const selectedDept = departments.find(d => d.departmentDaneCode === e.target.value);
+                setFormData({ 
+                  ...formData, 
+                  departmentDaneCode: e.target.value,
+                  departmentId: selectedDept?.id || "",
+                  department: selectedDept?.name || "",
+                  municipality: "",
+                  municipalityId: "",
+                  latitude: 0,
+                  longitude: 0,
+                });
+              }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               required
+              disabled={loadingDepartments}
             >
-              <option value="">Seleccione un departamento</option>
+              <option value="">
+                {loadingDepartments ? "Cargando departamentos..." : "Seleccione un departamento"}
+              </option>
               {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
+                <option key={dept.id} value={dept.departmentDaneCode}>
+                  {dept.name}
                 </option>
               ))}
             </select>
@@ -241,15 +300,35 @@ export function Users() {
             <label className="text-sm font-medium text-foreground">
               Municipio
             </label>
-            <Input
-              type="text"
-              placeholder="Ingrese el municipio"
-              value={formData.municipality}
-              onChange={(e) =>
-                setFormData({ ...formData, municipality: e.target.value })
-              }
+            <select
+              value={formData.municipalityId}
+              onChange={(e) => {
+                const selectedMun = municipalities.find(m => m.id === e.target.value);
+                setFormData({ 
+                  ...formData, 
+                  municipalityId: e.target.value,
+                  municipality: selectedMun?.name || "",
+                  latitude: selectedMun?.latitude || 0,
+                  longitude: selectedMun?.longitude || 0,
+                });
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               required
-            />
+              disabled={!formData.departmentDaneCode || loadingMunicipalities}
+            >
+              <option value="">
+                {!formData.departmentDaneCode 
+                  ? "Primero seleccione un departamento" 
+                  : loadingMunicipalities 
+                  ? "Cargando municipios..." 
+                  : "Seleccione un municipio"}
+              </option>
+              {municipalities.map((mun) => (
+                <option key={mun.id} value={mun.id}>
+                  {mun.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -262,23 +341,23 @@ export function Users() {
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer"
+              disabled={submitting}
+              className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Crear Usuario
+              {submitting ? "Creando..." : "Crear Líder"}
             </button>
           </div>
         </form>
       </Modal>
 
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Usuarios
+              Líderes Comunitarios
             </h1>
             <p className="text-muted-foreground">
-              Gestión de usuarios del sistema
+              Gestión de líderes del sistema
             </p>
           </div>
           <button
@@ -286,17 +365,16 @@ export function Users() {
             className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            Agregar Usuario
+            Agregar Líder
           </button>
         </div>
 
-        {/* Search */}
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Buscar usuarios..."
+              placeholder="Buscar líderes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -304,7 +382,13 @@ export function Users() {
           </div>
         </div>
 
-        {/* Table */}
+        {loadingLeaders && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Cargando líderes...</p>
+          </div>
+        )}
+
+        {!loadingLeaders && (
         <div className="rounded-lg border border-border bg-card shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -336,7 +420,7 @@ export function Users() {
                     >
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm font-medium text-card-foreground">
-                          {user.name}
+                          {user.firstName} {user.lastName}
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
@@ -346,12 +430,12 @@ export function Users() {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm text-card-foreground">
-                          {user.department}
+                          {user.departmentId.substring(0, 8)}...
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm text-card-foreground">
-                          {user.municipality}
+                          {user.municipalityId.substring(0, 8)}...
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
@@ -370,7 +454,7 @@ export function Users() {
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center">
                       <p className="text-sm text-muted-foreground">
-                        No se encontraron usuarios
+                        No se encontraron líderes
                       </p>
                     </td>
                   </tr>
@@ -379,6 +463,7 @@ export function Users() {
             </table>
           </div>
         </div>
+        )}
       </div>
     </>
   );

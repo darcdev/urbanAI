@@ -11,7 +11,7 @@ import {
   Eye,
   User
 } from "lucide-react";
-import { Modal } from "../shared/Modal";
+import { Modal } from "../../../shared/Modal";
 
 const stats = [
   {

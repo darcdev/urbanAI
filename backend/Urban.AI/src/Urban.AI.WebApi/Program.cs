@@ -1,6 +1,7 @@
 #region Usings
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using CommunityToolkit.HighPerformance;
 using Urban.AI.Application;
 using Urban.AI.Infrastructure;
 using Urban.AI.Infrastructure.Storage.OptionsSetup;
@@ -17,6 +18,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddPresentation();
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin() // Permite cualquier origen
+                          .AllowAnyMethod() // Permite cualquier método (GET, POST, etc.)
+                          .AllowAnyHeader()); // Permite cualquier encabezado
+});
+
 
 var app = builder.Build();
 
@@ -48,6 +58,8 @@ app.UseCustomExceptionHandler();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseCors("AllowAll");
 
 app.MapControllers();
 
