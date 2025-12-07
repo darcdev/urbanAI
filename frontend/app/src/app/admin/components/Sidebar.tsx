@@ -15,6 +15,11 @@ const menuItems = [
     icon: Home,
     href: "/admin",
   },
+  {
+    title: "Organizaciones",
+    icon: Home,
+    href: "/admin/organizations",
+  }
 ];
 
 interface SidebarProps {
@@ -69,13 +74,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
             <ChevronLeft className={`hidden lg:block h-5 w-5 text-sidebar-foreground transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
           </button>
         </div>
-
-        <Image
-          src="/images/Logo.png"
-          alt="UrbanAI Logo"
-          width={40}
-          height={40}
-        />
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3">

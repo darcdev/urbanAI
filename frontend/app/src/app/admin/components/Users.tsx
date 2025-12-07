@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Eye } from "lucide-react";
+import { Search, Plus, Eye, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import Swal from 'sweetalert2';
 import { Modal } from "../../../shared/Modal";
 import { geographyService, leadersService, Department, Municipality, Leader } from "@/lib/api";
 
@@ -10,7 +11,12 @@ export function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Leader | null>(null);
+  const [editData, setEditData] = useState({
+    firstName: "",
+    lastName: "",
+  });
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -50,9 +56,7 @@ export function Users() {
     try {
       setLoadingLeaders(true);
       const data = await leadersService.getAll();
-      setLeaders(data);
-    } catch {
-      setLeaders([]);
+      setLeaders(Array.isArray(data) ? data : []);
     } finally {
       setLoadingLeaders(false);
     }
@@ -120,8 +124,57 @@ export function Users() {
         latitude: 0,
         longitude: 0,
       });
+      
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: 'Líder creado exitosamente',
+        confirmButtonColor: '#3085d6',
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Error al crear el líder";
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errorMessage,
+        confirmButtonColor: '#d33',
+      });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedUser) return;
+    
+    try {
+      setSubmitting(true);
+      await leadersService.update(selectedUser.id, {
+        firstName: editData.firstName,
+        lastName: editData.lastName,
+      });
+      
+      await loadLeaders();
+      setIsEditModalOpen(false);
+      setSelectedUser(null);
+      setEditData({ firstName: "", lastName: "" });
+      
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: 'Líder actualizado exitosamente',
+        confirmButtonColor: '#3085d6',
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Error al actualizar el líder";
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errorMessage,
+        confirmButtonColor: '#d33',
+      });
     }
   };
 
@@ -186,7 +239,7 @@ export function Users() {
                   setIsViewModalOpen(false);
                   setSelectedUser(null);
                 }}
-                className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+                className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 cursor-pointer transition-all"
               >
                 Cerrar
               </button>
@@ -331,20 +384,20 @@ export function Users() {
             </select>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="flex-1 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer"
-            >
-              Cancelar
-            </button>
+          <div className="flex gap-3 pt-4 justify-end">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? "Creando..." : "Crear Líder"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer"
+            >
+              Cancelar
             </button>
           </div>
         </form>
@@ -430,19 +483,34 @@ export function Users() {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm text-card-foreground">
-                          {user.departmentId.substring(0, 8)}...
+                          {user.departmentName.toLowerCase() || "N/A"}
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm text-card-foreground">
-                          {user.municipalityId.substring(0, 8)}...
+                          {user.municipalityName.toLowerCase() || "N/A"}
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditData({
+                                firstName: user.firstName,
+                                lastName: user.lastName,
+                              });
+                              setIsEditModalOpen(true);
+                            }}
+                            className="bg-green-100 text-green-700 inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-green-200 transition-all cursor-pointer"
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
                             onClick={() => handleViewUser(user)}
                             className="bg-blue-100 text-blue-700 inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-primary hover:text-accent-foreground transition-all cursor-pointer"
+                            title="Ver detalles"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -465,6 +533,69 @@ export function Users() {
         </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedUser(null);
+          setEditData({ firstName: "", lastName: "" });
+        }}
+        title="Editar Líder"
+      >
+        <form onSubmit={handleEdit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Nombre
+            </label>
+            <Input
+              type="text"
+              placeholder="Ingrese el nombre"
+              value={editData.firstName}
+              onChange={(e) =>
+                setEditData({ ...editData, firstName: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Apellido
+            </label>
+            <Input
+              type="text"
+              placeholder="Ingrese el apellido"
+              value={editData.lastName}
+              onChange={(e) =>
+                setEditData({ ...editData, lastName: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4 justify-end">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {submitting ? "Actualizando..." : "Actualizar"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedUser(null);
+                setEditData({ firstName: "", lastName: "" });
+              }}
+              className="px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }
