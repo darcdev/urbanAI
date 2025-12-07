@@ -9,15 +9,29 @@ services:
     build:
       context: ..
       dockerfile: src/${PATH_PROJECT_NAME}.WebApi/Dockerfile
-    profiles:
-      - webapi
-    # depends_on defined in stack overrides
+    depends_on:
+      db-postgresql:
+        condition: service_healthy
+      minio-storage:
+        condition: service_healthy
     ports:
       - ${API_HTTP_PORT}:8080
       - ${API_HTTPS_PORT}:8081
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTPS_PORT=${API_HTTPS_PORT}
+      - ConnectionStrings__DefaultConnectionDb=Host=db-postgresql;Port=5432;Database=${PROJECT_NAME};Username=postgres;Password=postgres;
+      - Minio__Host=minio-storage:9000
+      - Minio__Username=rootadmin
+      - Minio__Password=rootadmin
+      - Minio__IsSecureSSL=false
+      - Authentication__Audience=account
+      - Authentication__ValidIssuer=http://identity-keycloak:8080/realms/${PROJECT_NAME}
+      - Authentication__MetadataUrl=http://identity-keycloak:8080/realms/${PROJECT_NAME}/.well-known/openid-configuration
+      - Authentication__RequireHttpsMetadata=false
+      - Keycloak__BaseUrl=http://identity-keycloak:8080
+      - Keycloak__AdminUrl=http://identity-keycloak:8080/admin/realms/${PROJECT_NAME}/
+      - Keycloak__TokenUrl=http://identity-keycloak:8080/realms/${PROJECT_NAME}/protocol/openid-connect/token
     restart: on-failure
     networks:
       - network-public
@@ -114,8 +128,6 @@ services:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
     container_name: keycloak.identity
     restart: on-failure
-    profiles:
-      - keycloak
     command: start --import-realm --health-enabled=true
     env_file:
       - keycloak.env
@@ -127,6 +139,14 @@ services:
       - ./resources/application-realm-export.json:/opt/keycloak/data/import/realm.json
     ports:
       - '${KEYCLOAK_HTTP_PORT:-18080}:8080'
+    networks:
+      - network-public
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080;echo -e 'GET /health/ready HTTP/1.1\r\nhost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n' >&3;cat <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
       
 networks:
   network-public:
