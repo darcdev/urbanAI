@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Swal from 'sweetalert2';
 import {
   MapPin,
   Calendar,
@@ -9,220 +11,127 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  User,
   Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Modal } from "../../../shared/Modal";
-
-const allIncidents = [
-  {
-    id: 1,
-    title: "Bache en Av. Principal",
-    location: "Av. Principal #123",
-    status: "pending",
-    date: "2024-12-06",
-    priority: "high",
-    category: "Vías",
-    description: "Bache profundo que representa peligro para vehículos",
-    image: "https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=800&q=80",
-    reporter: "Juan Pérez",
-    reportedAt: "08:30 AM",
-  },
-  {
-    id: 2,
-    title: "Semáforo dañado",
-    location: "Calle 45 con 67",
-    status: "in-progress",
-    date: "2024-12-05",
-    priority: "critical",
-    category: "Señalización",
-    description: "Semáforo sin funcionar en intersección principal",
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80",
-    reporter: "María García",
-    reportedAt: "2024-12-05 02:15 PM",
-  },
-  {
-    id: 3,
-    title: "Basura acumulada",
-    location: "Parque Central",
-    status: "resolved",
-    date: "2024-12-04",
-    priority: "medium",
-    category: "Limpieza",
-    description: "Acumulación de basura en área recreativa",
-    image: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&q=80",
-    reporter: "Carlos Rodríguez",
-    reportedAt: "2024-12-04 10:00 AM",
-  },
-  {
-    id: 4,
-    title: "Alumbrado público",
-    location: "Calle 12 #34-56",
-    status: "pending",
-    date: "2024-12-03",
-    priority: "low",
-    category: "Servicios",
-    description: "Postes de luz sin funcionar en vía principal",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-    reporter: "Ana Martínez",
-    reportedAt: "2024-12-03 07:45 PM",
-  },
-  {
-    id: 5,
-    title: "Árbol caído",
-    location: "Carrera 8 #23-45",
-    status: "in-progress",
-    date: "2024-12-02",
-    priority: "critical",
-    category: "Emergencia",
-    description: "Árbol obstruyendo vía vehicular",
-    image: "https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800&q=80",
-    reporter: "Pedro López",
-    reportedAt: "2024-12-02 06:20 AM",
-  },
-  {
-    id: 6,
-    title: "Fuga de agua",
-    location: "Calle 67 #89-12",
-    status: "pending",
-    date: "2024-12-01",
-    priority: "high",
-    category: "Servicios",
-    description: "Fuga considerable en tubería principal",
-    image: "https://images.unsplash.com/photo-1584646098378-0874589d76b1?w=800&q=80",
-    reporter: "Laura Sánchez",
-    reportedAt: "2024-12-01 11:30 AM",
-  },
-  {
-    id: 7,
-    title: "Grafiti en paredes",
-    location: "Edificio Municipal",
-    status: "resolved",
-    date: "2024-11-30",
-    priority: "low",
-    category: "Vandalismo",
-    description: "Grafitis en fachada de edificio público",
-    image: "https://images.unsplash.com/photo-1569163139394-de4798aa62b6?w=800&q=80",
-    reporter: "Jorge Díaz",
-    reportedAt: "2024-11-30 03:00 PM",
-  },
-  {
-    id: 8,
-    title: "Hundimiento de vía",
-    location: "Av. Circunvalar Km 4",
-    status: "in-progress",
-    date: "2024-11-29",
-    priority: "critical",
-    category: "Vías",
-    description: "Hundimiento significativo en calzada",
-    image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80",
-    reporter: "Sofía Ramírez",
-    reportedAt: "2024-11-29 09:15 AM",
-  },
-  {
-    id: 9,
-    title: "Señal de tránsito vandalizada",
-    location: "Calle 34 con 56",
-    status: "pending",
-    date: "2024-11-28",
-    priority: "medium",
-    category: "Señalización",
-    description: "Señal de pare destruida",
-    image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80",
-    reporter: "Miguel Torres",
-    reportedAt: "2024-11-28 04:30 PM",
-  },
-  {
-    id: 10,
-    title: "Alcantarilla tapada",
-    location: "Barrio Los Pinos",
-    status: "resolved",
-    date: "2024-11-27",
-    priority: "high",
-    category: "Servicios",
-    description: "Alcantarilla obstruida causando inundaciones",
-    image: "https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80",
-    reporter: "Carmen Flores",
-    reportedAt: "2024-11-27 12:00 PM",
-  },
-  {
-    id: 11,
-    title: "Parque en mal estado",
-    location: "Parque Las Flores",
-    status: "pending",
-    date: "2024-11-26",
-    priority: "medium",
-    category: "Espacios Públicos",
-    description: "Juegos infantiles deteriorados",
-    image: "https://images.unsplash.com/photo-1593510987459-7bd9ba92e6f2?w=800&q=80",
-    reporter: "Roberto Méndez",
-    reportedAt: "2024-11-26 10:45 AM",
-  },
-  {
-    id: 12,
-    title: "Cables sueltos",
-    location: "Calle 90 #12-34",
-    status: "in-progress",
-    date: "2024-11-25",
-    priority: "critical",
-    category: "Emergencia",
-    description: "Cables eléctricos colgando a baja altura",
-    image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80",
-    reporter: "Patricia Vargas",
-    reportedAt: "2024-11-25 08:00 AM",
-  },
-];
-
-const statusConfig = {
-  pending: { label: "Pendiente", color: "bg-red-200 text-red-800" },
-  "in-progress": { label: "En Progreso", color: "bg-yellow-200 text-yellow-800" },
-  resolved: { label: "Resuelto", color: "bg-green-200 text-green-800" },
-};
-
-const priorityConfig = {
-  critical: { label: "Crítica", color: "bg-red-200 text-red-800" },
-  high: { label: "Alta", color: "bg-yellow-200 text-yellow-800" },
-  medium: { label: "Media", color: "bg-blue-200 text-blue-800" },
-  low: { label: "Baja", color: "bg-green-200 text-green-800" },
-};
-
-type Incident = {
-  id: number;
-  title: string;
-  location: string;
-  status: string;
-  date: string;
-  priority: string;
-  category: string;
-  description: string;
-  image: string;
-  reporter: string;
-  reportedAt: string;
-};
+import { reviewerIncidentsService, ReviewerIncident } from "@/lib/api";
 
 export function Incidents() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<ReviewerIncident | null>(null);
+  const [incidents, setIncidents] = useState<ReviewerIncident[]>([]);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
+  useEffect(() => {
+    loadIncidents();
+  }, []);
+
+  const loadIncidents = async () => {
+    try {
+      setLoading(true);
+      const data = await reviewerIncidentsService.getMyIncidents();
+      const allIncidents = [...data.pending, ...data.accepted, ...data.rejected];
+      setIncidents(allIncidents);
+    } catch (error) {
+      console.error('Error loading incidents:', error);
+      setIncidents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!selectedIncident) return;
+
+    const { value: priority } = await Swal.fire({
+      title: 'Seleccionar Prioridad',
+      input: 'select',
+      inputOptions: {
+        'Low': 'Baja',
+        'Medium': 'Media',
+        'High': 'Alta',
+        'Critical': 'Crítica'
+      },
+      inputPlaceholder: 'Selecciona una prioridad',
+      showCancelButton: true,
+      confirmButtonText: 'Aceptar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Debes seleccionar una prioridad';
+        }
+      }
+    });
+
+    if (priority) {
+      try {
+        await reviewerIncidentsService.acceptIncident(selectedIncident.id, priority as 'Low' | 'Medium' | 'High' | 'Critical');
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Incidente aceptado exitosamente',
+        });
+        setSelectedIncident(null);
+        loadIncidents();
+      } catch (error) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo aceptar el incidente',
+        });
+      }
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedIncident) return;
+
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas rechazar este incidente?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, rechazar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await reviewerIncidentsService.rejectIncident(selectedIncident.id);
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Incidente rechazado exitosamente',
+        });
+        setSelectedIncident(null);
+        loadIncidents();
+      } catch (error) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo rechazar el incidente',
+        });
+      }
+    }
+  };
+
   // Filtrar incidentes
-  const filteredIncidents = allIncidents.filter((incident) => {
+  const filteredIncidents = incidents.filter((incident) => {
     const matchesSearch =
-      incident.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      incident.category.toLowerCase().includes(searchTerm.toLowerCase());
+      incident.radicateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      incident.aiDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      incident.category.name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
-      statusFilter === "all" || incident.status === statusFilter;
+      statusFilter === "all" || incident.status.toLowerCase() === statusFilter;
 
-    const matchesPriority =
-      priorityFilter === "all" || incident.priority === priorityFilter;
-
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus;
   });
 
   // Paginación
@@ -247,11 +156,12 @@ export function Incidents() {
         {selectedIncident && (
           <div className="space-y-6">
             {/* Imagen */}
-            <div className="rounded-lg overflow-hidden border border-border">
-              <img
-                src={selectedIncident.image}
-                alt={selectedIncident.title}
-                className="w-full h-64 object-cover"
+            <div className="rounded-lg overflow-hidden border border-border relative h-64">
+              <Image
+                src={selectedIncident.imageUrl}
+                alt={`Incidente #${selectedIncident.radicateNumber}`}
+                fill
+                className="object-cover"
               />
             </div>
 
@@ -259,11 +169,16 @@ export function Incidents() {
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-semibold text-card-foreground">
-                  {selectedIncident.title}
+                  Incidente #{selectedIncident.radicateNumber}
                 </h3>
                 <p className="text-muted-foreground mt-1">
-                  {selectedIncident.description}
+                  {selectedIncident.aiDescription}
                 </p>
+                {selectedIncident.additionalComment && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    Comentario: {selectedIncident.additionalComment}
+                  </p>
+                )}
               </div>
 
               {/* Grid de Información */}
@@ -272,7 +187,9 @@ export function Incidents() {
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Ubicación</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.location}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedIncident.latitude.toFixed(6)}, {selectedIncident.longitude.toFixed(6)}
+                    </p>
                   </div>
                 </div>
 
@@ -280,7 +197,9 @@ export function Incidents() {
                   <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Fecha</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedIncident.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
 
@@ -288,14 +207,33 @@ export function Incidents() {
                   <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Hora</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.reportedAt}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedIncident.createdAt).toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <p className="text-sm font-medium text-card-foreground">Categoria</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.category}</p>
+                    <p className="text-sm font-medium text-card-foreground">Categoría</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedIncident.category.name} - {selectedIncident.subcategory.name}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Prioridad</p>
+                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md mt-1 ${
+                      selectedIncident.priority === 'High' ? 'bg-red-100 text-red-800' :
+                      selectedIncident.priority === 'Medium' ? 'bg-orange-100 text-orange-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {selectedIncident.priority === 'High' ? 'Alta' :
+                       selectedIncident.priority === 'Medium' ? 'Media' :
+                       'Baja'}
+                    </span>
                   </div>
                 </div>
 
@@ -304,13 +242,13 @@ export function Incidents() {
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Estado</p>
                     <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md mt-1 ${
-                      selectedIncident.status === 'pending' ? 'bg-red-200 text-red-800' :
-                      selectedIncident.status === 'in-progress' ? 'bg-yellow-200 text-yellow-800' :
-                      'bg-green-200 text-green-800'
+                      selectedIncident.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' :
+                      selectedIncident.status === 'Accepted' ? 'bg-green-200 text-green-800' :
+                      'bg-red-200 text-red-800'
                     }`}>
-                      {selectedIncident.status === 'pending' ? 'Pendiente' :
-                       selectedIncident.status === 'in-progress' ? 'En Progreso' :
-                       'Resuelto'}
+                      {selectedIncident.status === 'Pending' ? 'Pendiente' :
+                       selectedIncident.status === 'Accepted' ? 'Aceptado' :
+                       'Rechazado'}
                     </span>
                   </div>
                 </div>
@@ -318,14 +256,22 @@ export function Incidents() {
             </div>
 
             {/* Botones de Acción */}
-            <div className="flex gap-3 pt-4 border-t border-border justify-end">
-              <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer">
-                Aceptar
-              </button>
-              <button className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer">
-                Rechazar
-              </button>
-            </div>
+            {selectedIncident.status === 'Pending' && (
+              <div className="flex gap-3 pt-4 border-t border-border justify-end">
+                <button 
+                  onClick={handleAccept}
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-all cursor-pointer"
+                >
+                  Aceptar
+                </button>
+                <button 
+                  onClick={handleReject}
+                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-all cursor-pointer"
+                >
+                  Rechazar
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Modal>
@@ -377,8 +323,8 @@ export function Incidents() {
             >
               <option value="all">Todos los estados</option>
               <option value="pending">Pendientes</option>
-              <option value="in-progress">En Progreso</option>
-              <option value="resolved">Resueltos</option>
+              <option value="accepted">Aceptados</option>
+              <option value="rejected">Rechazados</option>
             </select>
           </div>
 
@@ -441,7 +387,15 @@ export function Incidents() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {currentIncidents.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Cargando incidentes...
+                    </p>
+                  </td>
+                </tr>
+              ) : currentIncidents.length > 0 ? (
                 currentIncidents.map((incident) => (
                   <tr
                     key={incident.id}
@@ -450,56 +404,43 @@ export function Incidents() {
                     <td className="px-4 py-4">
                       <div className="max-w-xs">
                         <div className="text-sm font-medium text-card-foreground">
-                          {incident.title}
+                          #{incident.radicateNumber}
                         </div>
                         <div className="text-xs text-muted-foreground line-clamp-1">
-                          {incident.description}
+                          {incident.aiDescription}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4 shrink-0" />
-                        <span className="line-clamp-1">{incident.location}</span>
+                        <span className="line-clamp-1">
+                          {incident.latitude.toFixed(4)}, {incident.longitude.toFixed(4)}
+                        </span>
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-4">
                       <span className="text-sm text-card-foreground">
-                        {incident.category}
+                        {incident.category.name}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-4 py-4">
                       <span
                         className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
-                          statusConfig[incident.status as keyof typeof statusConfig]
-                            .color
+                          incident.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' :
+                          incident.status === 'Accepted' ? 'bg-green-200 text-green-800' :
+                          'bg-red-200 text-red-800'
                         }`}
                       >
-                        {
-                          statusConfig[incident.status as keyof typeof statusConfig]
-                            .label
-                        }
+                        {incident.status === 'Pending' ? 'Pendiente' :
+                         incident.status === 'Accepted' ? 'Aceptado' :
+                         'Rechazado'}
                       </span>
                     </td>
-                    {/* <td className="whitespace-nowrap px-4 py-4">
-                      <span
-                        className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
-                          priorityConfig[
-                            incident.priority as keyof typeof priorityConfig
-                          ].color
-                        }`}
-                      >
-                        {
-                          priorityConfig[
-                            incident.priority as keyof typeof priorityConfig
-                          ].label
-                        }
-                      </span>
-                    </td> */}
                     <td className="whitespace-nowrap px-4 py-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        {incident.date}
+                        {new Date(incident.createdAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-4">
@@ -515,7 +456,7 @@ export function Incidents() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center">
+                  <td colSpan={6} className="px-4 py-8 text-center">
                     <p className="text-sm text-muted-foreground">
                       No se encontraron incidentes con los filtros aplicados
                     </p>

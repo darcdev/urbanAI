@@ -1,23 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Swal from 'sweetalert2';
 import { 
   AlertCircle, 
   CheckCircle, 
   Clock, 
-  TrendingUp,
+  XCircle,
   MapPin,
   Calendar,
-  Eye,
-  User
+  Eye
 } from "lucide-react";
 import { Modal } from "../../../shared/Modal";
+import { reviewerIncidentsService, ReviewerIncident } from "@/lib/api";
 
 const stats = [
   {
     title: "Incidentes Totales",
-    value: "1,234",
-    change: "+12.3%",
+    value: "0",
     trend: "up",
     icon: AlertCircle,
     color: "text-info",
@@ -25,103 +26,145 @@ const stats = [
   },
   {
     title: "Pendientes",
-    value: "342",
-    change: "-5.2%",
+    value: "0",
     trend: "down",
     icon: Clock,
     color: "text-warning",
     bgColor: "bg-warning/10",
   },
   {
-    title: "Resueltos",
-    value: "892",
-    change: "+18.1%",
+    title: "Aceptados",
+    value: "0",
     trend: "up",
     icon: CheckCircle,
     color: "text-success",
     bgColor: "bg-success/10",
   },
   {
-    title: "En Progreso",
-    value: "156",
-    change: "+3.4%",
+    title: "Rechazados",
+    value: "0",
     trend: "up",
-    icon: TrendingUp,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
+    icon: XCircle,
+    color: "text-destructive",
+    bgColor: "bg-destructive/10",
   },
 ];
-
-const recentIncidents = [
-  {
-    id: 1,
-    title: "Bache en Av. Principal",
-    location: "Av. Principal #123",
-    status: "pending",
-    date: "2024-12-06",
-    priority: "high",
-    category: "Vías",
-    description: "Bache profundo que representa peligro para vehículos",
-    image: "https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=800&q=80",
-    reporter: "Juan Pérez",
-    reportedAt: "2024-12-06 08:30 AM",
-  },
-  {
-    id: 2,
-    title: "Semáforo dañado",
-    location: "Calle 45 con 67",
-    status: "in-progress",
-    date: "2024-12-05",
-    priority: "critical",
-    category: "Señalización",
-    description: "Semáforo sin funcionar en intersección principal",
-    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80",
-    reporter: "María García",
-    reportedAt: "2024-12-05 02:15 PM",
-  },
-  {
-    id: 3,
-    title: "Basura acumulada",
-    location: "Parque Central",
-    status: "resolved",
-    date: "2024-12-04",
-    priority: "medium",
-    category: "Limpieza",
-    description: "Acumulación de basura en área recreativa",
-    image: "https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&q=80",
-    reporter: "Carlos Rodríguez",
-    reportedAt: "2024-12-04 10:00 AM",
-  },
-  {
-    id: 4,
-    title: "Alumbrado público",
-    location: "Calle 12 #34-56",
-    status: "pending",
-    date: "2024-12-03",
-    priority: "low",
-    category: "Servicios",
-    description: "Postes de luz sin funcionar en vía principal",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-    reporter: "Ana Martínez",
-    reportedAt: "2024-12-03 07:45 PM",
-  },
-];
-
-const statusConfig = {
-  pending: { label: "Pendiente", color: "bg-red-200 text-red-800" },
-  "in-progress": { label: "En Progreso", color: "bg-yellow-200 text-yellow-800" },
-  resolved: { label: "Resuelto", color: "bg-green-200 text-green-800" },
-};
-
-const priorityConfig = {
-  critical: { label: "Crítica", color: "bg-destructive text-destructive-foreground" },
-  high: { label: "Alta", color: "bg-orange-500 text-white" },
-  medium: { label: "Media", color: "bg-warning text-warning-foreground" },
-  low: { label: "Baja", color: "bg-muted text-muted-foreground" },
-};
 
 export function Home() {
-  const [selectedIncident, setSelectedIncident] = useState<typeof recentIncidents[0] | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<ReviewerIncident | null>(null);
+  const [incidents, setIncidents] = useState<ReviewerIncident[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statsData, setStatsData] = useState(stats);
+
+  useEffect(() => {
+    loadIncidents();
+  }, []);
+
+  const loadIncidents = async () => {
+    try {
+      setLoading(true);
+      const data = await reviewerIncidentsService.getMyIncidents();
+      
+      // Combinar todos los incidentes
+      const allIncidents = [...data.pending, ...data.accepted, ...data.rejected];
+      setIncidents(allIncidents);
+
+      // Actualizar estadísticas
+      const total = allIncidents.length;
+      const pending = data.pending.length;
+      const accepted = data.accepted.length;
+      const rejected = data.rejected.length;
+
+      setStatsData([
+        { ...stats[0], value: total.toString() },
+        { ...stats[1], value: pending.toString() },
+        { ...stats[2], value: accepted.toString() },
+        { ...stats[3], value: rejected.toString() },
+      ]);
+    } catch (error) {
+      console.error('Error loading incidents:', error);
+      setIncidents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!selectedIncident) return;
+
+    const { value: priority } = await Swal.fire({
+      title: 'Seleccionar Prioridad',
+      input: 'select',
+      inputOptions: {
+        'Low': 'Baja',
+        'Medium': 'Media',
+        'High': 'Alta',
+        'Critical': 'Crítica'
+      },
+      inputPlaceholder: 'Selecciona una prioridad',
+      showCancelButton: true,
+      confirmButtonText: 'Aceptar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Debes seleccionar una prioridad';
+        }
+      }
+    });
+
+    if (priority) {
+      try {
+        await reviewerIncidentsService.acceptIncident(selectedIncident.id, priority as 'Low' | 'Medium' | 'High' | 'Critical');
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Incidente aceptado exitosamente',
+        });
+        setSelectedIncident(null);
+        loadIncidents();
+      } catch (error) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo aceptar el incidente',
+        });
+      }
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedIncident) return;
+
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas rechazar este incidente?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, rechazar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await reviewerIncidentsService.rejectIncident(selectedIncident.id);
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: 'Incidente rechazado exitosamente',
+        });
+        setSelectedIncident(null);
+        loadIncidents();
+      } catch (error) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo rechazar el incidente',
+        });
+      }
+    }
+  };
 
   return (
     <>
@@ -133,11 +176,12 @@ export function Home() {
         {selectedIncident && (
           <div className="space-y-6">
             {/* Imagen */}
-            <div className="rounded-lg overflow-hidden border border-border">
-              <img
-                src={selectedIncident.image}
-                alt={selectedIncident.title}
-                className="w-full h-64 object-cover"
+            <div className="rounded-lg overflow-hidden border border-border relative h-64">
+              <Image
+                src={selectedIncident.imageUrl}
+                alt={`Incidente #${selectedIncident.radicateNumber}`}
+                fill
+                className="object-cover"
               />
             </div>
 
@@ -145,11 +189,16 @@ export function Home() {
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-semibold text-card-foreground">
-                  {selectedIncident.title}
+                  Incidente #{selectedIncident.radicateNumber}
                 </h3>
                 <p className="text-muted-foreground mt-1">
-                  {selectedIncident.description}
+                  {selectedIncident.aiDescription}
                 </p>
+                {selectedIncident.additionalComment && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    Comentario: {selectedIncident.additionalComment}
+                  </p>
+                )}
               </div>
 
               {/* Grid de Información */}
@@ -158,7 +207,9 @@ export function Home() {
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Ubicación</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.location}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedIncident.latitude.toFixed(6)}, {selectedIncident.longitude.toFixed(6)}
+                    </p>
                   </div>
                 </div>
 
@@ -166,7 +217,9 @@ export function Home() {
                   <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Fecha</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedIncident.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
 
@@ -174,29 +227,50 @@ export function Home() {
                   <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Hora</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.reportedAt}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedIncident.createdAt).toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <div>
-                    <p className="text-sm font-medium text-card-foreground">Categoria</p>
-                    <p className="text-sm text-muted-foreground">{selectedIncident.category}</p>
+                    <p className="text-sm font-medium text-card-foreground">Categoría</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedIncident.category.name} - {selectedIncident.subcategory.name}
+                    </p>
                   </div>
                 </div>
+
+                {selectedIncident.status === 'Accepted' && (
+                  <div className="flex items-start gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-card-foreground">Prioridad</p>
+                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md mt-1 ${
+                        selectedIncident.priority === 'High' ? 'bg-red-100 text-red-800' :
+                        selectedIncident.priority === 'Medium' ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {selectedIncident.priority === 'High' ? 'Alta' :
+                        selectedIncident.priority === 'Medium' ? 'Media' :
+                        'Baja'}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-start gap-3">
                   <div className="h-5 w-5 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Estado</p>
                     <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md mt-1 ${
-                      selectedIncident.status === 'pending' ? 'bg-red-200 text-red-800' :
-                      selectedIncident.status === 'in-progress' ? 'bg-yellow-200 text-yellow-800' :
-                      'bg-green-200 text-green-800'
+                      selectedIncident.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' :
+                      selectedIncident.status === 'Accepted' ? 'bg-green-200 text-green-800' :
+                      'bg-red-200 text-red-800'
                     }`}>
-                      {selectedIncident.status === 'pending' ? 'Pendiente' :
-                       selectedIncident.status === 'in-progress' ? 'En Progreso' :
-                       'Resuelto'}
+                      {selectedIncident.status === 'Pending' ? 'Pendiente' :
+                       selectedIncident.status === 'Accepted' ? 'Aceptado' :
+                       'Rechazado'}
                     </span>
                   </div>
                 </div>
@@ -204,14 +278,22 @@ export function Home() {
             </div>
 
             {/* Botones de Acción */}
-            <div className="flex gap-3 pt-4 border-t border-border justify-end">
-              <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer">
-                Aceptar
-              </button>
-              <button className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer">
-                Rechazar
-              </button>
-            </div>
+            {selectedIncident.status === 'Pending' && (
+              <div className="flex gap-3 pt-4 border-t border-border justify-end">
+                <button 
+                  onClick={handleAccept}
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-all cursor-pointer"
+                >
+                  Aceptar
+                </button>
+                <button 
+                  onClick={handleReject}
+                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-all cursor-pointer"
+                >
+                  Rechazar
+                </button>
+              </div>
+            )}
           </div>
         )}
       </Modal>
@@ -229,7 +311,7 @@ export function Home() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {statsData.map((stat) => {
           const Icon = stat.icon;
           return (
             <div
@@ -249,7 +331,6 @@ export function Home() {
                       stat.trend === "up" ? "text-success" : "text-destructive"
                     }`}
                   >
-                    {stat.change} del mes anterior
                   </p>
                 </div>
                 <div className={`rounded-md p-3 ${stat.bgColor}`}>
@@ -296,57 +377,69 @@ export function Home() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {recentIncidents.map((incident) => (
-                <tr
-                  key={incident.id}
-                  className="transition-colors hover:bg-muted/50"
-                >
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <div className="text-sm font-medium text-card-foreground">
-                      {incident.title}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      {incident.location}
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span
-                      className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
-                        statusConfig[incident.status as keyof typeof statusConfig].color
-                      }`}
-                    >
-                      {statusConfig[incident.status as keyof typeof statusConfig].label}
-                    </span>
-                  </td>
-                  {/* <td className="whitespace-nowrap px-6 py-4">
-                    <span
-                      className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
-                        priorityConfig[incident.priority as keyof typeof priorityConfig].color
-                      }`}
-                    >
-                      {priorityConfig[incident.priority as keyof typeof priorityConfig].label}
-                    </span>
-                  </td> */}
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {incident.date}
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <button
-                      onClick={() => setSelectedIncident(incident)}
-                      className="bg-blue-100 text-blue-700 inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-primary hover:text-accent-foreground transition-all cursor-pointer"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Ver
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                    Cargando incidentes...
                   </td>
                 </tr>
-              ))}
+              ) : incidents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                    No hay incidentes asignados
+                  </td>
+                </tr>
+              ) : (
+                incidents.slice(0, 10).map((incident) => (
+                  <tr
+                    key={incident.id}
+                    className="transition-colors hover:bg-muted/50"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="text-sm font-medium text-card-foreground">
+                        #{incident.radicateNumber}
+                      </div>
+                      <div className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                        {incident.category.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        {incident.latitude.toFixed(4)}, {incident.longitude.toFixed(4)}
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <span
+                        className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
+                          incident.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' :
+                          incident.status === 'Accepted' ? 'bg-green-200 text-green-800' :
+                          'bg-red-200 text-red-800'
+                        }`}
+                      >
+                        {incident.status === 'Pending' ? 'Pendiente' :
+                         incident.status === 'Accepted' ? 'Aceptado' :
+                         'Rechazado'}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(incident.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <button
+                        onClick={() => setSelectedIncident(incident)}
+                        className="bg-blue-100 text-blue-700 inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium hover:bg-primary hover:text-accent-foreground transition-all cursor-pointer"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Ver
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
