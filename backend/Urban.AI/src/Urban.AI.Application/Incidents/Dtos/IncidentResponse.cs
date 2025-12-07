@@ -1,0 +1,17 @@
+namespace Urban.AI.Application.Incidents.Dtos;
+
+public sealed record IncidentResponse(
+    Guid Id,
+    string RadicateNumber,
+    string ImageUrl,
+    decimal Latitude,
+    decimal Longitude,
+    string? CitizenEmail,
+    string? AdditionalComment,
+    string? Caption,
+    string? AiDescription,
+    string? Category,
+    string? Severity,
+    string Status,
+    string Priority,
+    DateTime CreatedAt);

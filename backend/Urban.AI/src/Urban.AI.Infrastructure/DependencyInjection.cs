@@ -15,14 +15,17 @@ using Urban.AI.Application.Common.Abstractions.Email;
 using Urban.AI.Application.Common.Abstractions.Storage;
 using Urban.AI.Domain.Common.Abstractions;
 using Urban.AI.Domain.Geography;
+using Urban.AI.Domain.Incidents;
 using Urban.AI.Domain.Leaders;
 using Urban.AI.Domain.Users;
+using Urban.AI.Infrastructure.AI;
 using Urban.AI.Infrastructure.Auth.Authentication;
 using Urban.AI.Infrastructure.Auth.Authorization;
 using Urban.AI.Infrastructure.Clock;
 using Urban.AI.Infrastructure.Database;
 using Urban.AI.Infrastructure.Database.Config;
 using Urban.AI.Infrastructure.Database.Repositories.Geography;
+using Urban.AI.Infrastructure.Database.Repositories.Incident;
 using Urban.AI.Infrastructure.Database.Repositories.Leader;
 using Urban.AI.Infrastructure.Database.Repositories.User;
 using Urban.AI.Infrastructure.Email;
@@ -53,6 +56,7 @@ public static class DependencyInjection
         AddDatabase(services, configuration);
         AddRepositories(services);
         AddGeographyRepositories(services);
+        AddAIServices(services);
         AddAuthentication(services, configuration);
         AddAuthorization(services);
         AddCaching(services, configuration);
@@ -82,6 +86,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ILeaderRepository, LeaderRepository>();
+        services.AddScoped<IIncidentRepository, IncidentRepository>();
     }
 
     private static void AddGeographyRepositories(IServiceCollection services)
@@ -89,6 +94,11 @@ public static class DependencyInjection
         services.AddScoped<IDepartmentRepository, DepartmentRepository>();
         services.AddScoped<IMunicipalityRepository, MunicipalityRepository>();
         services.AddScoped<ITownshipRepository, TownshipRepository>();
+    }
+
+    private static void AddAIServices(IServiceCollection services)
+    {
+        services.AddScoped<IIncidentAnalysisService, FakeIncidentAnalysisService>();
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
