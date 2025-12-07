@@ -44,7 +44,7 @@ El objetivo de UrbanAI es ser una app que permita a ciudadanos reportar barreras
 5. La fotografía es enviada al backend como FormData junto a la descripción (en caso de tenerla), correo y la ubicación.
 6. El backend recibe la fotografía y la información adicional, y utiliza un modelo de IA para analizar la imagen y extraer detalles relevantes (tipo de obstáculo, gravedad, etc.).
 7. El backend almacena la fotografía en minio y la información extraída por la IA en la base de datos (postgres) junto con la descripción y el correo (si aplica) y el path de la fotografía en minio.
-8. Al momento de guardar el reporte en la base de datos, a este se le agrega el campo del id del municipio, el cual se obtiene del li
+8. Al momento de guardar el reporte en la base de datos, a este se le agrega el campo del id del municipio, el cual se obtiene del lider
 9. Si en el request existe un correo, el backend envía un correo electrónico al usuario con el código de "Radicado" para que pueda consultar el estado de su reporte en el futuro.
 10. El backend asigna esta incidencia reportada al lider basado en la ubicación geográfica, considerando el punto más cercano al reporte (La ubicación se determina utilizando la formula de Haversine para calcular la distancia entre dos puntos geográficos y asignarlo al lider más cercano).
 11. La aplicación web muestra un mapa interactivo donde se visualizan todos los reportes realizados por los usuarios, incluyendo la fotografía, descripción y ubicación.

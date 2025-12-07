@@ -2,11 +2,13 @@ namespace Urban.AI.WebApi.Controllers.Incidents;
 
 #region Usings
 using Asp.Versioning;
+using Urban.AI.Application.Categories.SeedCategories;
 using Urban.AI.Application.Incidents.CreateIncident;
 using Urban.AI.Application.Incidents.Dtos;
 using Urban.AI.WebApi.Controllers.Common;
 using Urban.AI.WebApi.Controllers.Incidents.Dtos;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 #endregion
 
@@ -67,5 +69,22 @@ public class IncidentsController(ISender sender) : ApiController
         }
 
         return Created(string.Empty, result.Value);
+    }
+
+    [Authorize]
+    [HttpPost("seed-categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SeedCategories(CancellationToken cancellationToken)
+    {
+        var command = new SeedCategoriesCommand();
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return Ok(new { Message = "Categories seeded successfully" });
     }
 }

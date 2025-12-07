@@ -14,6 +14,8 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
     public async Task<Incident?> GetByRadicateNumberAsync(string radicateNumber, CancellationToken cancellationToken)
     {
         return await _dbContext.Set<Incident>()
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
             .FirstOrDefaultAsync(i => i.RadicateNumber == radicateNumber, cancellationToken);
     }
 
@@ -22,6 +24,8 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
         return await _dbContext.Set<Incident>()
             .Include(i => i.Municipality)
             .Include(i => i.Leader)
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
             .Where(i => i.LeaderId == leaderId)
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -32,6 +36,8 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
         return await _dbContext.Set<Incident>()
             .Include(i => i.Municipality)
             .Include(i => i.Leader)
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
             .Where(i => i.MunicipalityId == municipalityId)
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -42,6 +48,8 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
         return await _dbContext.Set<Incident>()
             .Include(i => i.Municipality)
             .Include(i => i.Leader)
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
             .Where(i => i.Status == status)
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync(cancellationToken);

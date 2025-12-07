@@ -43,17 +43,12 @@ internal sealed class IncidentMapping : IEntityTypeConfiguration<Incident>
         builder.Property(i => i.AdditionalComment)
             .HasMaxLength(Incident.CommentMaxLength);
 
-        builder.Property(i => i.Caption)
-            .HasMaxLength(Incident.CaptionMaxLength);
-
         builder.Property(i => i.AiDescription)
             .HasMaxLength(Incident.DescriptionMaxLength);
 
-        builder.Property(i => i.Category)
-            .HasConversion<string>();
+        builder.Property(i => i.CategoryId);
 
-        builder.Property(i => i.Severity)
-            .HasConversion<string>();
+        builder.Property(i => i.SubcategoryId);
 
         builder.Property(i => i.Status)
             .IsRequired()
@@ -86,6 +81,16 @@ internal sealed class IncidentMapping : IEntityTypeConfiguration<Incident>
         builder.HasOne(i => i.Leader)
             .WithMany()
             .HasForeignKey(i => i.LeaderId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(i => i.Category)
+            .WithMany()
+            .HasForeignKey(i => i.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(i => i.Subcategory)
+            .WithMany()
+            .HasForeignKey(i => i.SubcategoryId)
             .OnDelete(DeleteBehavior.SetNull);
     }
 }

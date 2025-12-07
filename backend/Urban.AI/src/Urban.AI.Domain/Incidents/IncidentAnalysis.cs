@@ -2,29 +2,34 @@ namespace Urban.AI.Domain.Incidents;
 
 public sealed class IncidentAnalysis
 {
-    public string Caption { get; private set; }
+    #region Constants
+    public const int DescriptionMaxLength = 500;
+    #endregion
+
+    public Guid? CategoryId { get; private set; }
+    public Guid? SubcategoryId { get; private set; }
     public string Description { get; private set; }
-    public IncidentCategory Category { get; private set; }
-    public IncidentSeverity Severity { get; private set; }
 
     private IncidentAnalysis(
-        string caption,
-        string description,
-        IncidentCategory category,
-        IncidentSeverity severity)
+        Guid? categoryId,
+        Guid? subcategoryId,
+        string description)
     {
-        Caption = caption;
+        CategoryId = categoryId;
+        SubcategoryId = subcategoryId;
         Description = description;
-        Category = category;
-        Severity = severity;
     }
 
     public static IncidentAnalysis Create(
-        string caption,
-        string description,
-        IncidentCategory category,
-        IncidentSeverity severity)
+        Guid? categoryId,
+        Guid? subcategoryId,
+        string description)
     {
-        return new IncidentAnalysis(caption, description, category, severity);
+        return new IncidentAnalysis(categoryId, subcategoryId, description);
+    }
+
+    public static IncidentAnalysis CreateNotApplicable(string description)
+    {
+        return new IncidentAnalysis(null, null, description);
     }
 }
