@@ -23,7 +23,10 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Runtime envs (e.g., NEXTAUTH_SECRET) can be injected with docker run -e/--env-file
+# NextAuth Configuration - Trust all hosts
+ENV AUTH_TRUST_HOST=1
+ENV NEXTAUTH_URL_INTERNAL=http://localhost:3000
+# Runtime envs (e.g., NEXTAUTH_SECRET, NEXTAUTH_URL) can be injected with docker run -e/--env-file
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public

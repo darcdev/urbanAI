@@ -57,6 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET || "fallback-secret-key-change-in-production",
+  trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
