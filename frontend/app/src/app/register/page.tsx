@@ -113,11 +113,7 @@ export default function RegisterPage() {
             </Button>
             <div className="flex justify-center">
               <a 
-<<<<<<< HEAD
-                href="https://www.gov.co/registro" 
-=======
                 href="https://autenticaciondigital.and.gov.co/Login/Show?returnUrl=%2F" 
->>>>>>> feat/logingov
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-[#0943b5] p-3 rounded-md cursor-pointer hover:opacity-90 transition-opacity"
