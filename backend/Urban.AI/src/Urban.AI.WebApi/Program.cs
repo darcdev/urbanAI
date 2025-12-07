@@ -50,6 +50,8 @@ app.ApplyMigrations();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
+app.UseCors("AllowAll");
+
 if (!app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
@@ -62,8 +64,6 @@ app.UseCustomExceptionHandler();
 app.UseAuthentication();
 
 app.UseAuthorization();
-
-app.UseCors("AllowAll");
 
 app.MapControllers();
 
