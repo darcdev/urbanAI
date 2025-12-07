@@ -12,11 +12,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials || typeof credentials.email !== "string" || typeof credentials.password !== "string") {
           return null
         }
 
-        const user = users.find((u) => u.email === credentials.email)
+        const { email, password } = credentials
+
+        const user = users.find((u) => u.email === email)
 
         if (!user) {
           return null
@@ -24,7 +26,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Verificar contraseña con bcrypt
         try {
-          const isValid = await bcrypt.compare(credentials.password, user.password)
+          const isValid = await bcrypt.compare(password, user.password)
           if (isValid) {
             return {
               id: user.id,
@@ -34,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         } catch (error) {
           // Si el hash no es válido (usuario demo), verificar directamente
-          if (credentials.password === "demo123") {
+          if (password === "demo123") {
             return {
               id: user.id,
               email: user.email,
