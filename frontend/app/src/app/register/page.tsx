@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
 import { authService } from "@/lib/api/auth.service"
+import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -110,6 +111,22 @@ export default function RegisterPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Registrando..." : "Registrarse"}
             </Button>
+            <div className="flex justify-center">
+              <a 
+                href="https://www.gov.co/registro" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-[#0943b5] p-3 rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <Image
+                  src="/images/logoGovCo.png"
+                  alt="UrbanAI"
+                  width={100}
+                  height={40}
+                  className="object-contain"
+                />
+              </a>
+            </div>
             <p className="text-sm text-center text-white">
               ¿Ya tienes una cuenta?{" "}
               <Link href="/login" className="text-primary hover:underline">
