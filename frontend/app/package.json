@@ -12,18 +12,10 @@
     "@auth/prisma-adapter": "^2.11.1",
     "@hookform/resolvers": "^5.2.2",
     "@types/leaflet": "^1.9.21",
-<<<<<<< Updated upstream
-=======
-    "@types/leaflet.heat": "^0.2.5",
->>>>>>> Stashed changes
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
-<<<<<<< Updated upstream
-=======
-    "leaflet.heat": "^0.2.0",
->>>>>>> Stashed changes
     "lucide-react": "^0.556.0",
     "next": "16.0.7",
     "next-auth": "^5.0.0-beta.30",
