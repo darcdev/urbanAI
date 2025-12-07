@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import { geographyIncidentsService, GeographyIncident, geographyService, Department, Municipality } from "@/lib/api";
 import { Search, Calendar, Bot } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ChatbotWidget } from "./ChatbotWidget";
@@ -10,7 +12,7 @@ import { Modal } from "../../../shared/Modal";
 // Type for HeatMap props
 type HeatMapProps = {
   incidents: Array<{
-    id: number;
+    id: number | string;
     title: string;
     description: string;
     department: string;
@@ -20,7 +22,7 @@ type HeatMapProps = {
     status: string;
     coordinates: { lat: number; lng: number };
   }>;
-  onBoundsChange?: (visibleIncidentIds: number[]) => void;
+  onBoundsChange?: (visibleIncidentIds: (number | string)[]) => void;
 };
 
 // Importar el mapa dinámicamente para evitar SSR issues  
@@ -29,200 +31,155 @@ const HeatMap = dynamic<HeatMapProps>(
   { ssr: false }
 );
 
-// Datos de ejemplo de incidentes
-const mockIncidents = [
-  {
-    id: 1,
-    title: "Bache en vía principal",
-    description: "Bache profundo que representa peligro para vehículos",
-    department: "Antioquia",
-    municipality: "Medellín",
-    date: "2024-12-06",
-    priority: "high",
-    status: "pending",
-    coordinates: { lat: 6.2476, lng: -75.5658 },
-  },
-  {
-    id: 2,
-    title: "Semáforo dañado",
-    description: "Semáforo sin funcionamiento en intersección importante",
-    department: "Cundinamarca",
-    municipality: "Bogotá",
-    date: "2024-12-05",
-    priority: "critical",
-    status: "in-progress",
-    coordinates: { lat: 4.7110, lng: -74.0721 },
-  },
-  {
-    id: 3,
-    title: "Basuras en esquina",
-    description: "Acumulación de basuras sin recoger",
-    department: "Valle del Cauca",
-    municipality: "Cali",
-    date: "2024-12-04",
-    priority: "medium",
-    status: "pending",
-    coordinates: { lat: 3.4516, lng: -76.5320 },
-  },
-  {
-    id: 4,
-    title: "Alumbrado público dañado",
-    description: "Postes de luz sin funcionamiento en zona residencial",
-    department: "Atlántico",
-    municipality: "Barranquilla",
-    date: "2024-12-03",
-    priority: "high",
-    status: "pending",
-    coordinates: { lat: 10.9685, lng: -74.7813 },
-  },
-  {
-    id: 5,
-    title: "Fuga de agua",
-    description: "Fuga importante en tubería principal",
-    department: "Santander",
-    municipality: "Bucaramanga",
-    date: "2024-12-06",
-    priority: "critical",
-    status: "resolved",
-    coordinates: { lat: 7.1193, lng: -73.1227 },
-  },
-  {
-    id: 6,
-    title: "Árbol caído",
-    description: "Árbol obstruye vía vehicular",
-    department: "Antioquia",
-    municipality: "Medellín",
-    date: "2024-12-05",
-    priority: "high",
-    status: "in-progress",
-    coordinates: { lat: 6.2500, lng: -75.5700 },
-  },
-  {
-    id: 7,
-    title: "Andén deteriorado",
-    description: "Andén peatonal en mal estado",
-    department: "Cundinamarca",
-    municipality: "Bogotá",
-    date: "2024-12-04",
-    priority: "medium",
-    status: "pending",
-    coordinates: { lat: 4.7150, lng: -74.0750 },
-  },
-  {
-    id: 8,
-    title: "Grafiti en muro público",
-    description: "Grafiti vandálico en edificio municipal",
-    department: "Antioquia",
-    municipality: "Medellín",
-    date: "2024-12-03",
-    priority: "low",
-    status: "pending",
-    coordinates: { lat: 6.2450, lng: -75.5600 },
-  },
-  {
-    id: 9,
-    title: "Alcantarilla sin tapa",
-    description: "Alcantarilla destapada representa peligro",
-    department: "Valle del Cauca",
-    municipality: "Cali",
-    date: "2024-12-06",
-    priority: "critical",
-    status: "pending",
-    coordinates: { lat: 3.4500, lng: -76.5350 },
-  },
-  {
-    id: 10,
-    title: "Contaminación sonora",
-    description: "Establecimiento comercial con ruido excesivo",
-    department: "Atlántico",
-    municipality: "Barranquilla",
-    date: "2024-12-05",
-    priority: "medium",
-    status: "in-progress",
-    coordinates: { lat: 10.9700, lng: -74.7850 },
-  },
-  {
-    id: 11,
-    title: "Parque sin mantenimiento",
-    description: "Parque público con falta de mantenimiento",
-    department: "Bolívar",
-    municipality: "Cartagena",
-    date: "2024-12-04",
-    priority: "low",
-    status: "pending",
-    coordinates: { lat: 10.3910, lng: -75.4794 },
-  },
-  {
-    id: 12,
-    title: "Señalización faltante",
-    description: "Falta señalización vial en zona escolar",
-    department: "Caldas",
-    municipality: "Manizales",
-    date: "2024-12-03",
-    priority: "high",
-    status: "pending",
-    coordinates: { lat: 5.0689, lng: -75.5174 },
-  },
-];
-
-const departments = [
-  "Antioquia",
-  "Cundinamarca",
-  "Valle del Cauca",
-  "Atlántico",
-  "Santander",
-  "Bolívar",
-  "Caldas",
-  "Quindío",
-  "Risaralda",
-  "Tolima",
-];
-
 export function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedMunicipality, setSelectedMunicipality] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [selectedMunicipality, setSelectedMunicipality] = useState<Municipality | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedIncident, setSelectedIncident] = useState<typeof mockIncidents[0] | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<GeographyIncident | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [visibleIncidentIds, setVisibleIncidentIds] = useState<number[]>([]);
+  const [visibleIncidentIds, setVisibleIncidentIds] = useState<(number | string)[]>([]);
+  const [incidents, setIncidents] = useState<GeographyIncident[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Cargar departamentos al montar
+  useEffect(() => {
+    loadDepartments();
+  }, []);
+
+  // Cargar municipios cuando cambia el departamento
+  useEffect(() => {
+    if (selectedDepartment) {
+      loadMunicipalities(selectedDepartment.departmentDaneCode);
+    } else {
+      setMunicipalities([]);
+      setSelectedMunicipality(null);
+    }
+  }, [selectedDepartment]);
+
+  const loadDepartments = async () => {
+    try {
+      const data = await geographyService.getDepartments();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Error loading departments:', error);
+      setDepartments([]);
+    }
+  };
+
+  const loadMunicipalities = async (departmentDaneCode: string) => {
+    try {
+      const data = await geographyService.getMunicipalities(departmentDaneCode);
+      setMunicipalities(data);
+    } catch (error) {
+      console.error('Error loading municipalities:', error);
+      setMunicipalities([]);
+    }
+  };
+
+  const loadIncidents = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Cargar todos los incidentes sin filtros (el filtrado se hará por coordenadas)
+      const data = await geographyIncidentsService.getIncidentsByGeography();
+      setIncidents(data);
+    } catch (error) {
+      console.error('Error loading incidents:', error);
+      setIncidents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadIncidents();
+  }, [loadIncidents]);
+
   // useCallback para evitar recrear la función en cada render
-  const handleBoundsChange = useCallback((ids: number[]) => {
+  const handleBoundsChange = useCallback((ids: (number | string)[]) => {
     setVisibleIncidentIds(ids);
   }, []);
 
-  // Calcular municipios cuando cambia el departamento usando useMemo
-  const municipalities = useMemo(() => {
-    if (selectedDepartment) {
-      return mockIncidents
-        .filter((inc) => inc.department === selectedDepartment)
-        .map((inc) => inc.municipality)
-        .filter((value, index, self) => self.indexOf(value) === index);
-    }
-    return [];
-  }, [selectedDepartment]);
+  // Función para calcular distancia entre dos coordenadas (fórmula de Haversine)
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
-  // Filtrar incidentes por búsqueda, departamento, municipio y fecha (memoizado)
+  // Transformar incidentes del API al formato del mapa
+  const transformedIncidents = useMemo(() => {
+    return incidents.map(incident => {
+      // Encontrar el departamento y municipio más cercano basado en coordenadas
+      let departmentName = 'N/A';
+      let municipalityName = 'N/A';
+
+      if (selectedDepartment) {
+        departmentName = selectedDepartment.name;
+        if (selectedMunicipality) {
+          municipalityName = selectedMunicipality.name;
+        }
+      }
+
+      return {
+        id: incident.id,
+        title: `#${incident.radicateNumber}`,
+        description: incident.aiDescription,
+        department: departmentName,
+        municipality: municipalityName,
+        date: new Date(incident.createdAt).toLocaleDateString(),
+        priority: incident.priority.toLowerCase(),
+        status: incident.status.toLowerCase(),
+        coordinates: { lat: incident.latitude, lng: incident.longitude },
+      };
+    });
+  }, [incidents, selectedDepartment, selectedMunicipality]);
+
+  // Filtrar incidentes por búsqueda, coordenadas y fecha (memoizado)
   const searchFilteredIncidents = useMemo(() => {
-    return mockIncidents.filter((incident) => {
+    return transformedIncidents.filter((incident) => {
       const matchesSearch =
         searchTerm === "" ||
         incident.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         incident.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesDepartment =
-        selectedDepartment === "" || incident.department === selectedDepartment;
-
-      const matchesMunicipality =
-        selectedMunicipality === "" || incident.municipality === selectedMunicipality;
+      // Filtrar por área geográfica usando distancia a las coordenadas del departamento/municipio
+      let matchesGeography = true;
+      
+      if (selectedMunicipality) {
+        // Filtrar por proximidad al municipio (radio de ~50km)
+        const distance = calculateDistance(
+          incident.coordinates.lat,
+          incident.coordinates.lng,
+          selectedMunicipality.latitude,
+          selectedMunicipality.longitude
+        );
+        matchesGeography = distance <= 50; // 50 km de radio
+      } else if (selectedDepartment) {
+        // Filtrar por proximidad al departamento (radio de ~200km)
+        const distance = calculateDistance(
+          incident.coordinates.lat,
+          incident.coordinates.lng,
+          selectedDepartment.latitude,
+          selectedDepartment.longitude
+        );
+        matchesGeography = distance <= 200; // 200 km de radio
+      }
 
       const matchesDate = selectedDate === "" || incident.date === selectedDate;
 
-      return matchesSearch && matchesDepartment && matchesMunicipality && matchesDate;
+      return matchesSearch && matchesGeography && matchesDate;
     });
-  }, [searchTerm, selectedDepartment, selectedMunicipality, selectedDate]);
+  }, [searchTerm, selectedDate, transformedIncidents, selectedDepartment, selectedMunicipality]);
 
   // Filtrar adicionalmente por lo que está visible en el mapa
   const filteredIncidents = useMemo(() => {
@@ -234,9 +191,16 @@ export function Home() {
     return searchFilteredIncidents.filter(inc => visibleIncidentIds.includes(inc.id));
   }, [searchFilteredIncidents, visibleIncidentIds]);
 
-  const handleViewIncident = (incident: typeof mockIncidents[0]) => {
+  const handleViewIncident = (incident: GeographyIncident) => {
     setSelectedIncident(incident);
     setIsViewModalOpen(true);
+  };
+
+  const handleIncidentClick = (transformedIncident: typeof transformedIncidents[0]) => {
+    const originalIncident = incidents.find(inc => inc.id === transformedIncident.id);
+    if (originalIncident) {
+      handleViewIncident(originalIncident);
+    }
   };
 
   return (
@@ -252,57 +216,93 @@ export function Home() {
       >
         {selectedIncident && (
           <div className="space-y-4">
+            {/* Imagen */}
+            <div className="rounded-lg overflow-hidden border border-border relative h-64">
+              <Image
+                src={selectedIncident.imageUrl}
+                alt={`Incidente #${selectedIncident.radicateNumber}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">
-                {selectedIncident.title}
+                Incidente #{selectedIncident.radicateNumber}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {selectedIncident.description}
+                {selectedIncident.aiDescription}
               </p>
+              {selectedIncident.additionalComment && (
+                <p className="text-xs text-muted-foreground italic">
+                  Comentario: {selectedIncident.additionalComment}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
-                  Departamento
+                  Ubicación
                 </label>
                 <p className="text-base font-medium text-foreground">
-                  {selectedIncident.department}
+                  {selectedIncident.latitude.toFixed(6)}, {selectedIncident.longitude.toFixed(6)}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
-                  Municipio
+                  Categoría
                 </label>
                 <p className="text-base font-medium text-foreground">
-                  {selectedIncident.municipality}
+                  {selectedIncident.category.name}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Subcategoría</label>
+                <p className="text-base font-medium text-foreground">
+                  {selectedIncident.subcategory.name}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Fecha</label>
                 <p className="text-base font-medium text-foreground">
-                  {selectedIncident.date}
+                  {new Date(selectedIncident.createdAt).toLocaleDateString()}
                 </p>
               </div>
+
+              {selectedIncident.status === 'Accepted' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Prioridad</label>
+                  <span
+                    className={`inline-block px-2 py-1 text-xs font-medium rounded-md ${
+                      selectedIncident.priority === "High" || selectedIncident.priority === "Critical"
+                        ? "bg-red-100 text-red-800"
+                        : selectedIncident.priority === "Medium"
+                        ? "bg-orange-100 text-orange-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {selectedIncident.priority}
+                  </span>
+                </div>
+              )}
+
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Estado</label>
                 <span
-                  className={`inline-block ml-2 px-2 py-1 text-xs font-medium rounded-md ${
-                    selectedIncident.status === "pending"
-                      ? "bg-red-200 text-red-800"
-                      : selectedIncident.status === "in-progress"
+                  className={`inline-block px-2 py-1 text-xs font-medium rounded-md ${
+                    selectedIncident.status === "Pending"
                       ? "bg-yellow-200 text-yellow-800"
-                      : "bg-green-200 text-green-800"
+                      : selectedIncident.status === "Accepted"
+                      ? "bg-green-200 text-green-800"
+                      : "bg-red-200 text-red-800"
                   }`}
                 >
-                  {selectedIncident.status === "pending"
-                    ? "Pendiente"
-                    : selectedIncident.status === "in-progress"
-                    ? "En Progreso"
-                    : "Resuelto"}
+                  {selectedIncident.status}
                 </span>
               </div>
             </div>
@@ -362,32 +362,36 @@ export function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Departamento */}
               <select
-                value={selectedDepartment}
+                value={selectedDepartment?.id || ""}
                 onChange={(e) => {
-                  setSelectedDepartment(e.target.value);
-                  setSelectedMunicipality("");
+                  const dept = departments.find(d => d.id === e.target.value);
+                  setSelectedDepartment(dept || null);
+                  setSelectedMunicipality(null);
                 }}
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">Todos los deptos.</option>
                 {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
                   </option>
                 ))}
               </select>
 
               {/* Municipio */}
               <select
-                value={selectedMunicipality}
-                onChange={(e) => setSelectedMunicipality(e.target.value)}
+                value={selectedMunicipality?.id || ""}
+                onChange={(e) => {
+                  const mun = municipalities.find(m => m.id === e.target.value);
+                  setSelectedMunicipality(mun || null);
+                }}
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 disabled={!selectedDepartment}
               >
                 <option value="">Todos los munic.</option>
                 {municipalities.map((mun) => (
-                  <option key={mun} value={mun}>
-                    {mun}
+                  <option key={mun.id} value={mun.id}>
+                    {mun.name}
                   </option>
                 ))}
               </select>
@@ -436,13 +440,17 @@ export function Home() {
 
             {/* Lista de incidentes */}
             <div className="flex-1 overflow-y-auto">
-              {filteredIncidents.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center h-full p-8">
+                  <p className="text-sm text-muted-foreground">Cargando incidentes...</p>
+                </div>
+              ) : filteredIncidents.length > 0 ? (
                 <div className="divide-y divide-border">
                   {filteredIncidents.map((incident) => (
                     <div
                       key={incident.id}
                       className="p-4 hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => handleViewIncident(incident)}
+                      onClick={() => handleIncidentClick(incident)}
                     >
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm text-foreground line-clamp-1">
