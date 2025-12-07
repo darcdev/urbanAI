@@ -96,9 +96,15 @@ internal sealed class CreateIncidentHandler : ICommandHandler<CreateIncidentComm
                 cancellationToken);
         }
 
+        var savedIncident = await _incidentRepository.GetByIdWithDetailsAsync(incident.Id, cancellationToken);
+        if (savedIncident is null)
+        {
+            return Result.Failure<IncidentResponse>(IncidentErrors.NotFound);
+        }
+
         var imageUrl = await GetImageUrlAsync(imageFile, cancellationToken);
 
-        return Result.Success(incident.ToResponse(imageUrl));
+        return Result.Success(savedIncident.ToResponse(imageUrl));
     }
 
     private async Task<Result<(Guid? LeaderId, Guid MunicipalityId)>> AssignLeaderAndMunicipalityAsync(

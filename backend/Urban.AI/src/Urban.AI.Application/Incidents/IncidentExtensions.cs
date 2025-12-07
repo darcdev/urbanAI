@@ -44,6 +44,15 @@ internal static class IncidentExtensions
 
     private static LeaderDto ToDto(this Leader leader)
     {
+        if (leader.User is null)
+        {
+            return new LeaderDto(
+                leader.Id,
+                string.Empty,
+                string.Empty,
+                string.Empty);
+        }
+
         return new LeaderDto(
             leader.Id,
             $"{leader.User.FirstName} {leader.User.LastName}",
