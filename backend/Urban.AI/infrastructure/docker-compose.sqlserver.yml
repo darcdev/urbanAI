@@ -1,5 +1,0 @@
-services:
-  web-api:
-    depends_on:
-      redis-cache:
-        condition: service_healthy

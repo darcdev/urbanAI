@@ -6,6 +6,7 @@ using Urban.AI.Application.Common.Exceptions;
 using Urban.AI.Domain.Common.Abstractions;
 using Urban.AI.Domain.Organizations;
 using Urban.AI.Domain.Geography;
+using Urban.AI.Domain.Incidents;
 using Urban.AI.Domain.Leaders;
 using Urban.AI.Domain.Users;
 #endregion
@@ -18,6 +19,7 @@ public sealed class ApplicationDbContext(DbContextOptions options) : DbContext(o
     public DbSet<Municipality> Municipalities { get; set; }
     public DbSet<Township> Townships { get; set; }
     public DbSet<Leader> Leaders { get; set; }
+    public DbSet<Incident> Incidents { get; set; }
     public DbSet<Organization> Organizations { get; set; }
     #endregion
 

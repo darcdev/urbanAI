@@ -181,6 +181,104 @@ namespace Urban.AI.Infrastructure.Database.Migrations
                     b.ToTable("townships", (string)null);
                 });
 
+            modelBuilder.Entity("Urban.AI.Domain.Incidents.Incident", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AdditionalComment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("additional_comment");
+
+                    b.Property<string>("AiDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("ai_description");
+
+                    b.Property<DateTime?>("AttentionDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("attention_date");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("caption");
+
+                    b.Property<string>("Category")
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
+                    b.Property<string>("CitizenEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("citizen_email");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ImagePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("image_path");
+
+                    b.Property<Guid?>("LeaderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("leader_id");
+
+                    b.Property<Guid>("MunicipalityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("municipality_id");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("priority");
+
+                    b.Property<string>("RadicateNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("radicate_number");
+
+                    b.Property<string>("Severity")
+                        .HasColumnType("text")
+                        .HasColumnName("severity");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_incidents");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_incidents_created_at");
+
+                    b.HasIndex("LeaderId")
+                        .HasDatabaseName("ix_incidents_leader_id");
+
+                    b.HasIndex("MunicipalityId")
+                        .HasDatabaseName("ix_incidents_municipality_id");
+
+                    b.HasIndex("Priority")
+                        .HasDatabaseName("ix_incidents_priority");
+
+                    b.HasIndex("RadicateNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_incidents_radicate_number");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_incidents_status");
+
+                    b.ToTable("incidents", (string)null);
+                });
+
             modelBuilder.Entity("Urban.AI.Domain.Leaders.Leader", b =>
                 {
                     b.Property<Guid>("Id")
@@ -451,6 +549,54 @@ namespace Urban.AI.Infrastructure.Database.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_townships_municipalities_municipality_dane_code");
+                });
+
+            modelBuilder.Entity("Urban.AI.Domain.Incidents.Incident", b =>
+                {
+                    b.HasOne("Urban.AI.Domain.Leaders.Leader", "Leader")
+                        .WithMany()
+                        .HasForeignKey("LeaderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_incidents_leader_leader_id");
+
+                    b.HasOne("Urban.AI.Domain.Geography.Municipality", "Municipality")
+                        .WithMany()
+                        .HasForeignKey("MunicipalityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_incidents_municipalities_municipality_id");
+
+                    b.OwnsOne("Urban.AI.Domain.Incidents.Location", "Location", b1 =>
+                        {
+                            b1.Property<Guid>("IncidentId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<decimal>("Latitude")
+                                .HasPrecision(18, 8)
+                                .HasColumnType("numeric(18,8)")
+                                .HasColumnName("location_latitude");
+
+                            b1.Property<decimal>("Longitude")
+                                .HasPrecision(18, 8)
+                                .HasColumnType("numeric(18,8)")
+                                .HasColumnName("location_longitude");
+
+                            b1.HasKey("IncidentId");
+
+                            b1.ToTable("incidents");
+
+                            b1.WithOwner()
+                                .HasForeignKey("IncidentId")
+                                .HasConstraintName("fk_incidents_incidents_id");
+                        });
+
+                    b.Navigation("Leader");
+
+                    b.Navigation("Location")
+                        .IsRequired();
+
+                    b.Navigation("Municipality");
                 });
 
             modelBuilder.Entity("Urban.AI.Domain.Leaders.Leader", b =>
