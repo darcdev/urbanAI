@@ -110,7 +110,7 @@ const HeatMap = () => {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="max-w-2xl mx-auto text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary/10 text-primary text-sm font-semibold mb-4">
             <MapPin className="w-4 h-4" />
             Visualización en Tiempo Real
           </div>
@@ -134,7 +134,7 @@ const HeatMap = () => {
           {/* Loading Overlay */}
           {!isLoaded && (
             <div className="absolute inset-0 bg-muted flex items-center justify-center z-20">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-md" />
             </div>
           )}
 
@@ -174,10 +174,10 @@ const HeatMap = () => {
               {incidentTypes.map((type) => (
                 <div key={type.label} className="flex items-center justify-between gap-6">
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full ${type.color} shadow-sm`} />
+                    <div className={`w-4 h-4 rounded-md ${type.color} shadow-sm`} />
                     <span className="text-sm font-medium text-foreground">{type.label}</span>
                   </div>
-                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{type.count}</span>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{type.count}</span>
                 </div>
               ))}
             </div>
@@ -205,7 +205,7 @@ const HeatMap = () => {
             <span className="text-xs font-bold text-foreground block mb-2">Densidad</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Baja</span>
-              <div className="w-24 h-3 rounded-full" style={{
+              <div className="w-24 h-3 rounded-md" style={{
                 background: "linear-gradient(to right, #3B82F6, #10B981, #F59E0B, #EF4444, #DC2626)"
               }} />
               <span className="text-xs text-muted-foreground">Alta</span>

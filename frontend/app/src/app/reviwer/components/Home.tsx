@@ -245,7 +245,7 @@ export function Home() {
                     {stat.change} del mes anterior
                   </p>
                 </div>
-                <div className={`rounded-full p-3 ${stat.bgColor}`}>
+                <div className={`rounded-md p-3 ${stat.bgColor}`}>
                   <Icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
               </div>
@@ -316,7 +316,7 @@ export function Home() {
                   </td>
                   {/* <td className="whitespace-nowrap px-6 py-4">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
                         priorityConfig[incident.priority as keyof typeof priorityConfig].color
                       }`}
                     >

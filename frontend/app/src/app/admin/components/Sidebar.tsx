@@ -113,7 +113,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
               isCollapsed ? "justify-center" : ""
             }`}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <span className="text-xs font-semibold">AD</span>
             </div>
             {!isCollapsed && (

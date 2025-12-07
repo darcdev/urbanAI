@@ -54,7 +54,7 @@ const HowItWorks = () => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Step Number */}
-              <span className="absolute -top-3 -right-3 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground shadow-lg">
+              <span className="absolute -top-3 -right-3 w-12 h-12 rounded-md bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground shadow-lg">
                 {step.step}
               </span>
 
@@ -83,7 +83,7 @@ const HowItWorks = () => {
 
               {/* Connector Line (hidden on last item and mobile) */}
               {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-1 bg-primary/30 rounded-full" />
+                <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-1 bg-primary/30 rounded-md" />
               )}
             </div>
           ))}

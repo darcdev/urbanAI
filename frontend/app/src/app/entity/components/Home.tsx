@@ -337,7 +337,7 @@ export function Home() {
           <button
             onClick={() => setIsChatOpen((v) => !v)}
             aria-label={isChatOpen ? "Cerrar asistente" : "Abrir asistente"}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated hover:opacity-90 transition"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-elevated hover:opacity-90 transition"
           >
             <Bot className="h-4 w-4" />
           </button>

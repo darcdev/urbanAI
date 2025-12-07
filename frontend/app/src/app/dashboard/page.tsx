@@ -394,7 +394,7 @@ export default function DashboardPage() {
           <Logo size="md" />
           <Button
             onClick={() => setShowModal(true)}
-            className="rounded-full h-10 px-3 text-sm font-semibold"
+            className="rounded-md h-10 px-3 text-sm font-semibold"
           >
             Reportar incidente
           </Button>
@@ -434,7 +434,7 @@ export default function DashboardPage() {
                     <CardDescription>Listado de la comunidad</CardDescription>
                   </div>
                   </div>
-                  <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  <div className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm font-semibold">
                   {filteredIncidents.length} visibles
                   </div>
                 </div>
@@ -593,7 +593,7 @@ export default function DashboardPage() {
                       setPhotoPreview(null)
                       setError("")
                     }}
-                    className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                    className="h-9 w-9 rounded-md hover:bg-destructive/10 hover:text-destructive"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -685,7 +685,7 @@ export default function DashboardPage() {
                               type="button"
                               variant="destructive"
                               size="icon"
-                              className="absolute -top-2 -right-2 h-8 w-8 rounded-full"
+                              className="absolute -top-2 -right-2 h-8 w-8 rounded-md"
                               onClick={removePhoto}
                             >
                               <X className="h-4 w-4" />
