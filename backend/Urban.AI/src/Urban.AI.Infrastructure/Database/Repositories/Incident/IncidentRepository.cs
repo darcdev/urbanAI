@@ -54,4 +54,17 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<Incident>> GetAllIncidentsAsync(CancellationToken cancellationToken)
+    {
+        return await _dbContext.Set<Incident>()
+            .Include(i => i.Municipality)
+            .Include(i => i.Leader)
+                .ThenInclude(l => l.User)
+                    .ThenInclude(u => u.UserDetails)
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
+            .OrderByDescending(i => i.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
 }
