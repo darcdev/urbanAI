@@ -179,6 +179,13 @@ export function Home() {
                 </div>
 
                 <div className="flex items-start gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-card-foreground">Categoria</p>
+                    <p className="text-sm text-muted-foreground">{selectedIncident.category}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
                   <div className="h-5 w-5 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-card-foreground">Estado</p>
@@ -197,12 +204,12 @@ export function Home() {
             </div>
 
             {/* Botones de Acción */}
-            <div className="flex gap-3 pt-4 border-t border-border">
-              <button className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer">
-                Asignar
+            <div className="flex gap-3 pt-4 border-t border-border justify-end">
+              <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer">
+                Aceptar
               </button>
-              <button className="flex-1 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer">
-                Cambiar Estado
+              <button className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all cursor-pointer">
+                Rechazar
               </button>
             </div>
           </div>
@@ -245,7 +252,7 @@ export function Home() {
                     {stat.change} del mes anterior
                   </p>
                 </div>
-                <div className={`rounded-full p-3 ${stat.bgColor}`}>
+                <div className={`rounded-md p-3 ${stat.bgColor}`}>
                   <Icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
               </div>
@@ -316,7 +323,7 @@ export function Home() {
                   </td>
                   {/* <td className="whitespace-nowrap px-6 py-4">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-medium ${
                         priorityConfig[incident.priority as keyof typeof priorityConfig].color
                       }`}
                     >

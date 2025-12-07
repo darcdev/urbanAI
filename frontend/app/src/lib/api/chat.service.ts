@@ -3,11 +3,11 @@ import { MCP_API_BASE_URL } from '../environment';
 class ChatService {
   private baseUrl = `${MCP_API_BASE_URL}/chat`;
 
-  async sendMessage(message: string): Promise<string> {
+  async sendMessage(message: string, sessionId?: string): Promise<string> {
     const response = await fetch(this.baseUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, sessionId }),
       mode: 'cors',
     });
 

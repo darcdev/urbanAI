@@ -14,8 +14,8 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 animate-fade-in">
-            <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse-soft" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary/10 text-primary text-sm font-semibold mb-6 animate-fade-in">
+            <span className="w-2.5 h-2.5 rounded-md bg-accent animate-pulse-soft" />
             Plataforma de Gestión Urbana Inteligente
           </div>
 

@@ -196,19 +196,19 @@ function HeatMap({ incidents, onBoundsChange }: HeatMapProps) {
         <h4 className="text-xs font-semibold mb-2">Prioridad</h4>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-red-500"></div>
+            <div className="w-4 h-4 rounded-md bg-red-500"></div>
             <span className="text-xs">Crítica</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-orange-500"></div>
+            <div className="w-4 h-4 rounded-md bg-orange-500"></div>
             <span className="text-xs">Alta</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
+            <div className="w-4 h-4 rounded-md bg-yellow-500"></div>
             <span className="text-xs">Media</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+            <div className="w-4 h-4 rounded-md bg-blue-500"></div>
             <span className="text-xs">Baja</span>
           </div>
         </div>

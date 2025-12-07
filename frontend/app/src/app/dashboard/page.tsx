@@ -20,6 +20,7 @@ import {
   Search,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { incidentsService } from "@/lib/api"
 
 type LeafletMap = {
   setView: (coords: [number, number], zoom?: number) => void
@@ -226,35 +227,60 @@ export default function DashboardPage() {
       }
     }
 
-    const photoUrl = photoPreview || undefined
+    try {
+      // Extract pure base64 string (remove data:image/...;base64, prefix)
+      const base64Image = photoPreview.includes(',') 
+        ? photoPreview.split(',')[1] 
+        : photoPreview;
+      
+      console.log("📸 Image preview length:", photoPreview.length);
+      console.log("📸 Base64 image length:", base64Image.length);
+      
+      // Create incident via API
+      const createdIncident = await incidentsService.create({
+        Image: base64Image, // Pure base64 string without prefix
+        Latitude: finalLocation.lat,
+        Longitude: finalLocation.lng,
+        CitizenEmail: email.trim() || "",
+        AdditionalComment: description.trim() || "",
+      })
 
-    const newIncident: Incident = {
-      id: `incident-${Date.now()}`,
-      code: generateCode(),
-      name: "Reporte fotográfico",
-      description: description.trim() || undefined,
-      latitude: finalLocation.lat,
-      longitude: finalLocation.lng,
-      photoUrl,
-      createdAt: new Date().toISOString(),
+      console.log("✅ Incident created successfully:", createdIncident)
+
+      // Also save to localStorage for display (until we implement getAll)
+      const newIncident: Incident = {
+        id: createdIncident.id.toString(),
+        code: generateCode(),
+        name: "Reporte fotográfico",
+        description: createdIncident.AdditionalComment || undefined,
+        latitude: createdIncident.Latitude,
+        longitude: createdIncident.Longitude,
+        photoUrl: createdIncident.Image,
+        createdAt: createdIncident.createdAt,
+      }
+      
+      saveIncident(newIncident)
+
+      if (email.trim()) {
+        localStorage.setItem("userEmail", email.trim())
+      }
+
+      setSuccess(`Incidente reportado con éxito`)
+      setEmail(email.trim())
+      setDescription("")
+      setLocation(null)
+      setPhoto(null)
+      setPhotoPreview(null)
+      setLoading(false)
+      setShowModal(false)
+
+      setTimeout(() => setSuccess(""), 4000)
+    } catch (error) {
+      console.error("❌ Error creating incident:", error)
+      const errorMessage = error instanceof Error ? error.message : "Error al crear el incidente"
+      setError(errorMessage)
+      setLoading(false)
     }
-
-    saveIncident(newIncident)
-
-    if (email.trim()) {
-      localStorage.setItem("userEmail", email.trim())
-    }
-
-    setSuccess(`Incidente ${newIncident.code} reportado con éxito`)
-    setEmail(email.trim())
-    setDescription("")
-    setLocation(null)
-    setPhoto(null)
-    setPhotoPreview(null)
-    setLoading(false)
-    setShowModal(false)
-
-    setTimeout(() => setSuccess(""), 4000)
   }
 
   useEffect(() => {
@@ -394,7 +420,7 @@ export default function DashboardPage() {
           <Logo size="md" />
           <Button
             onClick={() => setShowModal(true)}
-            className="rounded-full h-10 px-3 text-sm font-semibold"
+            className="rounded-md h-10 px-3 text-sm font-semibold"
           >
             Reportar incidente
           </Button>
@@ -434,7 +460,7 @@ export default function DashboardPage() {
                     <CardDescription>Listado de la comunidad</CardDescription>
                   </div>
                   </div>
-                  <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                  <div className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm font-semibold">
                   {filteredIncidents.length} visibles
                   </div>
                 </div>
@@ -593,7 +619,7 @@ export default function DashboardPage() {
                       setPhotoPreview(null)
                       setError("")
                     }}
-                    className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                    className="h-9 w-9 rounded-md hover:bg-destructive/10 hover:text-destructive"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -685,7 +711,7 @@ export default function DashboardPage() {
                               type="button"
                               variant="destructive"
                               size="icon"
-                              className="absolute -top-2 -right-2 h-8 w-8 rounded-full"
+                              className="absolute -top-2 -right-2 h-8 w-8 rounded-md"
                               onClick={removePhoto}
                             >
                               <X className="h-4 w-4" />

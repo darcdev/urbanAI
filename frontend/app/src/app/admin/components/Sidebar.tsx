@@ -15,6 +15,11 @@ const menuItems = [
     icon: Home,
     href: "/admin",
   },
+  {
+    title: "Organizaciones",
+    icon: Home,
+    href: "/admin/organizations",
+  }
 ];
 
 interface SidebarProps {
@@ -70,13 +75,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
           </button>
         </div>
 
-        <Image
-          src="/images/Logo.png"
-          alt="UrbanAI Logo"
-          width={40}
-          height={40}
-        />
-
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3">
           {menuItems.map((item) => {
@@ -113,7 +111,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
               isCollapsed ? "justify-center" : ""
             }`}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <span className="text-xs font-semibold">AD</span>
             </div>
             {!isCollapsed && (
