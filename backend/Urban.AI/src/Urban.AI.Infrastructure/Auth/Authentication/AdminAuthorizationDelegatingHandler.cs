@@ -37,6 +37,7 @@ internal sealed class AdminAuthorizationDelegatingHandler : DelegatingHandler
             authorizationToken.AccessToken);
 
         var httpResponseMessage = await base.SendAsync(request, cancellationToken);
+        string stringData = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
         httpResponseMessage.EnsureSuccessStatusCode();
 

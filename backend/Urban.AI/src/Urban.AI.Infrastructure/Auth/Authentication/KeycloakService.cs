@@ -15,7 +15,7 @@ internal sealed class KeycloakService(HttpClient httpClient) : IIdentityProvider
 {
     #region Constants
     private const string UsersEndpoint = "users";
-    private const string RolesEndpoint = "clients/enterprisetemplate-auth-client/roles";
+    private const string RolesEndpoint = "clients/urbanai-auth-client/roles";
     private const string RoleMappingsSegment = "role-mappings/realm";
     #endregion
 
