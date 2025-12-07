@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 
 interface Incident {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   department: string;
@@ -19,7 +19,7 @@ interface Incident {
 
 interface HeatMapProps {
   incidents: Incident[];
-  onBoundsChange?: (visibleIncidentIds: number[]) => void;
+  onBoundsChange?: (visibleIncidentIds: (number | string)[]) => void;
 }
 
 function HeatMap({ incidents, onBoundsChange }: HeatMapProps) {
@@ -27,11 +27,16 @@ function HeatMap({ incidents, onBoundsChange }: HeatMapProps) {
   const heatLayerRef = useRef<L.HeatLayer | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
   const onBoundsChangeRef = useRef(onBoundsChange);
+  const incidentsRef = useRef(incidents);
 
-  // Mantener la referencia actualizada
+  // Mantener las referencias actualizadas
   useEffect(() => {
     onBoundsChangeRef.current = onBoundsChange;
   }, [onBoundsChange]);
+
+  useEffect(() => {
+    incidentsRef.current = incidents;
+  }, [incidents]);
 
   useEffect(() => {
     // Inicializar el mapa solo una vez
@@ -52,7 +57,7 @@ function HeatMap({ incidents, onBoundsChange }: HeatMapProps) {
         if (!mapRef.current || !onBoundsChangeRef.current) return;
         
         const bounds = mapRef.current.getBounds();
-        const visible = incidents.filter(inc => 
+        const visible = incidentsRef.current.filter(inc => 
           bounds.contains([inc.coordinates.lat, inc.coordinates.lng])
         ).map(inc => inc.id);
         
@@ -70,7 +75,6 @@ function HeatMap({ incidents, onBoundsChange }: HeatMapProps) {
         mapRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -177,7 +181,7 @@ function HeatMap({ incidents, onBoundsChange }: HeatMapProps) {
       if (!mapRef.current || !onBoundsChangeRef.current) return;
       
       const bounds = mapRef.current.getBounds();
-      const visible = incidents.filter(inc => 
+      const visible = incidentsRef.current.filter(inc => 
         bounds.contains([inc.coordinates.lat, inc.coordinates.lng])
       ).map(inc => inc.id);
       

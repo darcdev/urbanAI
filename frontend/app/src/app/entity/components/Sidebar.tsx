@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { 
   Home,
   ChevronLeft,
   X
 } from "lucide-react";
+import { authService } from "@/lib/api/auth.service";
 
 const menuItems = [
   {
@@ -25,6 +27,22 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
+  const [user, setUser] = useState<{ email?: string } | null>(null);
+
+  useEffect(() => {
+    // Obtener información del usuario desde localStorage
+    const fetchUser = () => {
+      const userData = authService.getUser();
+      setUser(userData);
+    };
+    fetchUser();
+  }, []);
+
+  // Generar iniciales del email
+  const getInitials = () => {
+    if (!user?.email) return "U";
+    return user.email.substring(0, 2).toUpperCase();
+  };
 
   return (
     <>
@@ -109,15 +127,12 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
             }`}
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-xs font-semibold">EN</span>
+              <span className="text-xs font-semibold">{getInitials()}</span>
             </div>
             {!isCollapsed && (
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-sidebar-foreground">
-                  Entidad
-                </span>
-                <span className="text-xs text-sidebar-foreground/60">
-                  entidad@urbanai.com
+                  {user?.email || "usuario@urbanai.com"}
                 </span>
               </div>
             )}

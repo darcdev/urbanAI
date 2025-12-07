@@ -98,8 +98,7 @@ export function Home() {
       inputOptions: {
         'Low': 'Baja',
         'Medium': 'Media',
-        'High': 'Alta',
-        'Critical': 'Crítica'
+        'High': 'Alta'
       },
       inputPlaceholder: 'Selecciona una prioridad',
       showCancelButton: true,
