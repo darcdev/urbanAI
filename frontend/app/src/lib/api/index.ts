@@ -5,3 +5,4 @@ export * from './chat.service';
 export * from './incidents.service';
 export * from './organizations.service';
 export * from './reviewer-incidents.service';
+export * from './geography-incidents.service';

@@ -13,6 +13,10 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
+  id?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
   user?: {
     id: string;
     email: string;
@@ -22,6 +26,7 @@ export interface AuthResponse {
   token?: string;
   accessToken?: string;
   message?: string;
+  roles?: string[];
 }
 
 class AuthService {
@@ -135,6 +140,12 @@ class AuthService {
       }
 
       const data = await response.json();
+      
+      // Guardar la información actualizada del usuario en localStorage
+      if (data) {
+        localStorage.setItem('user', JSON.stringify(data));
+      }
+      
       return data;
     } catch (error) {
       throw error;

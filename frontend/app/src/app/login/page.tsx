@@ -27,13 +27,30 @@ export default function LoginPage() {
         email,
         password,
       })
-      const isValid = await authService.verifyToken();
       
-      if (isValid) {
-        router.push("/admin")
-        router.refresh()
+      // Obtener información del usuario incluyendo roles
+      const userInfo = await authService.whoami();
+      
+      // Redirigir según el rol
+      if (userInfo.roles && Array.isArray(userInfo.roles) && userInfo.roles.length > 0) {
+        const role = userInfo.roles[0]; // Tomar el primer rol
+        
+        switch (role) {
+          case "Organization":
+            router.push("/entity");
+            break;
+          case "Leader":
+            router.push("/reviwer");
+            break;
+          case "Admin":
+            router.push("/admin");
+            break;
+          default:
+            throw new Error(`Rol desconocido: ${role}`);
+        }
+        router.refresh();
       } else {
-        throw new Error('El token no es válido. Por favor contacta al administrador.');
+        throw new Error('No se pudo determinar el rol del usuario');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error al iniciar sesión"
@@ -45,12 +62,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white bg-pattern p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-current">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center">
             <Logo size="md" />
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-white">
             Inicia sesión en tu cuenta
           </CardDescription>
         </CardHeader>
@@ -87,7 +104,7 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-white">
               ¿No tienes una cuenta?{" "}
               <Link href="/register" className="text-primary hover:underline">
                 Regístrate

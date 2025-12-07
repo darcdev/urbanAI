@@ -53,8 +53,7 @@ export function Incidents() {
       inputOptions: {
         'Low': 'Baja',
         'Medium': 'Media',
-        'High': 'Alta',
-        'Critical': 'Crítica'
+        'High': 'Alta'
       },
       inputPlaceholder: 'Selecciona una prioridad',
       showCancelButton: true,
@@ -222,20 +221,22 @@ export function Incidents() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-card-foreground">Prioridad</p>
-                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md mt-1 ${
-                      selectedIncident.priority === 'High' ? 'bg-red-100 text-red-800' :
-                      selectedIncident.priority === 'Medium' ? 'bg-orange-100 text-orange-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {selectedIncident.priority === 'High' ? 'Alta' :
-                       selectedIncident.priority === 'Medium' ? 'Media' :
-                       'Baja'}
-                    </span>
+                {selectedIncident.status === 'Accepted' && (
+                  <div className="flex items-start gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-card-foreground">Prioridad</p>
+                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md mt-1 ${
+                        selectedIncident.priority === 'High' ? 'bg-red-100 text-red-800' :
+                        selectedIncident.priority === 'Medium' ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {selectedIncident.priority === 'High' ? 'Alta' :
+                        selectedIncident.priority === 'Medium' ? 'Media' :
+                        'Baja'}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="flex items-start gap-3">
                   <div className="h-5 w-5 mt-0.5" />

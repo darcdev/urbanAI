@@ -45,12 +45,12 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white bg-pattern p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-current">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center">
             <Logo size="md" />
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-white">
             Crea una nueva cuenta
           </CardDescription>
         </CardHeader>
@@ -110,7 +110,7 @@ export default function RegisterPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Registrando..." : "Registrarse"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-white">
               ¿Ya tienes una cuenta?{" "}
               <Link href="/login" className="text-primary hover:underline">
                 Inicia sesión
