@@ -49,10 +49,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerWithUi();
 }
 
-if (app.Environment.IsProduction())
-{
-    app.ApplyMigrations();
-}
+app.ApplyMigrations();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
