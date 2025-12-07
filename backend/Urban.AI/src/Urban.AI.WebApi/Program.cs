@@ -44,10 +44,7 @@ RouteGroupBuilder versionedGroup = app
     .WithApiVersionSet(apiVersionSet);
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerWithUi();
-}
+app.UseSwaggerWithUi();
 
 app.ApplyMigrations();
 
