@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { 
-  Home, 
-  FileText, 
-//   BarChart3, 
-//   Settings, 
+  Home,
   ChevronLeft,
-  X
+  X,
+  FileText
 } from "lucide-react";
 
 const menuItems = [
@@ -36,7 +35,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
 
   return (
     <>
-      {/* Overlay para móvil */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden"
@@ -44,24 +42,23 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`bg-white fixed lg:relative inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-sidebar-background transition-all duration-300 ease-in-out ${
+        className={`bg-current fixed lg:relative inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-sidebar-background transition-all duration-300 ease-in-out ${
           isCollapsed ? "lg:w-16" : "lg:w-64"
         } ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         } w-64`}
       >
-        {/* Logo Section */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">U</span>
-              </div>
-              <span className="text-lg font-semibold text-sidebar-foreground">
-                UrbanAI
-              </span>
+              <Image
+                src="/images/Logo-liviano.png"
+                alt="UrbanAI"
+                width={120}
+                height={40}
+                className="object-contain"
+              />
             </div>
           )}
           {/* Botón de cerrar en móvil, colapsar en desktop */}
@@ -73,7 +70,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
                 onToggleCollapse();
               }
             }}
-            className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-sidebar-accent"
+            className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-sidebar-accent bg-white cursor-pointer"
           >
             <X className="h-5 w-5 text-sidebar-foreground lg:hidden" />
             <ChevronLeft className={`hidden lg:block h-5 w-5 text-sidebar-foreground transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
@@ -98,7 +95,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-primary text-white"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 text-white"
                 }`}
                 title={isCollapsed ? item.title : undefined}
               >
@@ -117,15 +114,15 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
             }`}
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-xs font-semibold">RV</span>
+              <span className="text-xs font-semibold">AD</span>
             </div>
             {!isCollapsed && (
-              <div className="flex flex-col">
+              <div className="flex flex-col text-white">
                 <span className="text-sm font-medium text-sidebar-foreground">
-                  Revisor
+                  Admin
                 </span>
                 <span className="text-xs text-sidebar-foreground/60">
-                  revisor@urbanai.com
+                  admin@urbanai.com
                 </span>
               </div>
             )}
