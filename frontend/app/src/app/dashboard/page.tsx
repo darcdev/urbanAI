@@ -663,7 +663,7 @@ export default function DashboardPage() {
                               const badge = getStatusBadge(incident.status)
                               return (
                                 <span
-                                  className={`inline-flex min-w-[104px] justify-center items-center rounded-full border px-3.5 py-1.5 text-[12px] font-semibold leading-tight ${badge.className}`}
+                                  className={`inline-flex min-w-[90px] justify-center items-center rounded-md border px-3.5 py-1.5 text-[12px] font-semibold leading-tight ${badge.className}`}
                                 >
                                   {badge.text}
                                 </span>

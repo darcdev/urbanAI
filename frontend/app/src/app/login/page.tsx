@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
 import { authService } from "@/lib/api/auth.service"
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter()
@@ -104,6 +105,22 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
+            <div className="flex justify-center">
+              <a 
+                href="https://autenticaciondigital.and.gov.co/Login" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-[#0943b5] p-3 rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <Image
+                  src="/images/logoGovCo.png"
+                  alt="UrbanAI"
+                  width={100}
+                  height={40}
+                  className="object-contain"
+                />
+              </a>
+            </div>
             <p className="text-sm text-center text-white">
               ¿No tienes una cuenta?{" "}
               <Link href="/register" className="text-primary hover:underline">
