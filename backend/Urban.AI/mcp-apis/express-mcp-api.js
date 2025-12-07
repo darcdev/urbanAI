@@ -13,8 +13,8 @@ const __dirname = path.dirname(__filename);
 const MCP_SERVER_PATH = path.join(__dirname, "postgres-mcp-server.js");
 
 const {
-  MCP_POSTGRES_URL = "postgres://postgres:postgres@172.20.10.2:5432/urbanai",
-  GEMINI_API_KEY = "AIzaSyDhCd0_WQK212fNNciSzj_WiqEHQBiaQQc",
+  MCP_POSTGRES_URL = "postgres://postgres:postgres@147.93.184.134:5432/urbanai",
+  GEMINI_API_KEY = "AIzaSyDzaGaMvTGdEnq5svO2VhRhFq-dbJ6qRqk",
   GEMINI_MODEL = "gemini-2.5-flash",
   PORT = 4000,
 } = process.env;
