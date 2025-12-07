@@ -7,6 +7,7 @@ using Urban.AI.Application.Incidents.CreateIncident;
 using Urban.AI.Application.Incidents.Dtos;
 using Urban.AI.Application.Incidents.UpdateIncidentStatus;
 using Urban.AI.Domain.Incidents;
+using Urban.AI.Application.Incidents.GetAllIncidents;
 using Urban.AI.WebApi.Controllers.Common;
 using Urban.AI.WebApi.Controllers.Incidents.Dtos;
 using MediatR;
@@ -137,5 +138,20 @@ public class IncidentsController(ISender sender) : ApiController
         }
 
         return Ok(new { Message = "Categories seeded successfully" });
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<IncidentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllIncidents(CancellationToken cancellationToken)
+    {
+        var query = new GetAllIncidentsQuery();
+        var result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return Ok(result.Value);
     }
 }

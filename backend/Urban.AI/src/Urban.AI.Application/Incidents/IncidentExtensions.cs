@@ -3,6 +3,7 @@ namespace Urban.AI.Application.Incidents;
 #region Usings
 using Urban.AI.Application.Incidents.Dtos;
 using Urban.AI.Domain.Incidents;
+using Urban.AI.Domain.Leaders;
 #endregion
 
 internal static class IncidentExtensions
@@ -20,6 +21,7 @@ internal static class IncidentExtensions
             incident.AiDescription,
             incident.Category?.ToDto(),
             incident.Subcategory?.ToDto(),
+            incident.Leader?.ToDto(),
             incident.Status.ToString(),
             incident.Priority.ToString(),
             incident.CreatedAt);
@@ -38,5 +40,14 @@ internal static class IncidentExtensions
         return new SubcategoryDto(
             subcategory.Id,
             subcategory.Name);
+    }
+
+    private static LeaderDto ToDto(this Leader leader)
+    {
+        return new LeaderDto(
+            leader.Id,
+            $"{leader.User.FirstName} {leader.User.LastName}",
+            leader.User.Email,
+            leader.User.UserDetails?.ContactInfo.PhoneNumber.Value ?? string.Empty);
     }
 }

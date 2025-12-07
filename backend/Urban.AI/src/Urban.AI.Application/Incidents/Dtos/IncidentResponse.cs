@@ -11,6 +11,7 @@ public sealed record IncidentResponse(
     string? AiDescription,
     CategoryDto? Category,
     SubcategoryDto? Subcategory,
+    LeaderDto? Leader,
     string Status,
     string Priority,
     DateTime CreatedAt);
