@@ -26,7 +26,6 @@ class IncidentsService {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     return {
       'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }

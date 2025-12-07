@@ -38,7 +38,6 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
         },
         body: JSON.stringify(credentials),
         mode: 'cors',
@@ -78,7 +77,6 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
         },
         body: JSON.stringify(userData),
         mode: 'cors',
@@ -126,15 +124,14 @@ class AuthService {
       }
 
       const response = await fetch(`${this.baseUrl}/whoami`, {
+      const response = await fetch(`${this.baseUrl}/whoami`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
           'Authorization': `Bearer ${token}`,
         },
         mode: 'cors',
       });
-
       if (!response.ok) {
         if (response.status === 401) {
           this.logout();
