@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Search, Calendar } from "lucide-react";
+import { Search, Calendar, Bot } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Modal } from "../shared/Modal";
+import { ChatbotWidget } from "./ChatbotWidget";
 
 // Type for HeatMap props
 type HeatMapProps = {
@@ -185,6 +186,7 @@ export function Home() {
   const [selectedIncident, setSelectedIncident] = useState<typeof mockIncidents[0] | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [visibleIncidentIds, setVisibleIncidentIds] = useState<number[]>([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // useCallback para evitar recrear la función en cada render
   const handleBoundsChange = useCallback((ids: number[]) => {
@@ -330,8 +332,19 @@ export function Home() {
           />
         </div>
 
+        {/* Botón del asistente */}
+        <div className="absolute bottom-4 left-14 z-[750]">
+          <button
+            onClick={() => setIsChatOpen((v) => !v)}
+            aria-label={isChatOpen ? "Cerrar asistente" : "Abrir asistente"}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated hover:opacity-90 transition"
+          >
+            <Bot className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Panel de filtros - Flotante arriba a la izquierda */}
-        <div className="absolute top-3 left-14 right-4 md:right-auto md:w-96 z-[600]">
+        <div className="absolute top-0 left-14 right-4 md:right-auto md:w-96 z-[600]">
           <div className="bg-white rounded-lg shadow-xl border border-border p-4 space-y-4">
             {/* Búsqueda */}
             <div className="relative">
@@ -402,6 +415,13 @@ export function Home() {
             </div>
           </div>
         </div>
+
+        {/* Chatbot flotante */}
+        {isChatOpen && (
+          <div className="absolute bottom-20 left-14 z-[760]">
+            <ChatbotWidget />
+          </div>
+        )}
 
         {/* Panel lateral derecho - Lista de incidentes flotante (estilo Google Maps) */}
         <div className="absolute top-11 right-4 bottom-4 w-80 md:w-96 z-[600] hidden lg:block">
