@@ -1,5 +1,0 @@
-services:
-  web-api:
-    depends_on:
-      minio-storage:
-        condition: service_healthy
