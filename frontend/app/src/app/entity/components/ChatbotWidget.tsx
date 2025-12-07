@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { Bot } from "lucide-react";
 import { createChatBotMessage } from "react-chatbot-kit";
 import "react-chatbot-kit/build/main.css";
+import { chatService } from "@/lib/api/chat.service";
 
 const Chatbot = dynamic(() => import("react-chatbot-kit").then((mod) => mod.default), {
   ssr: false,
@@ -17,7 +18,8 @@ const ChatbotTyped = Chatbot as unknown as React.ComponentType<{
 }>;
 
 type CreateMessage = typeof createChatBotMessage;
-type SetChatState = React.Dispatch<React.SetStateAction<{ messages: unknown[] }>>;
+type ChatState = { messages: unknown[] };
+type SetChatState = React.Dispatch<React.SetStateAction<ChatState>>;
 
 class ActionProvider {
   createChatBotMessage: CreateMessage;
@@ -28,20 +30,35 @@ class ActionProvider {
     this.setStateFunc = setStateFunc;
   }
 
-  greet() {
-    this.addMessage("Hola, ¿cómo puedo ayudarte hoy?");
-  }
+  async handleMessage(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
 
-  defaultResponse() {
-    this.addMessage("Puedo darte tips sobre los incidentes visibles en el panel.");
-  }
+    const pending = this.createChatBotMessage("Analizando tu consulta...", {});
+    const pendingId = (pending as { id?: string | number }).id;
 
-  addMessage(text: string) {
-    const message = this.createChatBotMessage(text, {});
     this.setStateFunc((prev) => ({
       ...prev,
-      messages: [...prev.messages, message],
+      messages: [...prev.messages, pending],
     }));
+
+    try {
+      const reply = await chatService.sendMessage(trimmed);
+      this.setStateFunc((prev) => ({
+        ...prev,
+        messages: prev.messages.map((msg: any) =>
+          msg.id === pendingId ? { ...msg, message: reply } : msg
+        ),
+      }));
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "No pude responder ahora.";
+      this.setStateFunc((prev) => ({
+        ...prev,
+        messages: prev.messages.map((msg: any) =>
+          msg.id === pendingId ? { ...msg, message: `Error: ${reason}` } : msg
+        ),
+      }));
+    }
   }
 }
 
@@ -52,13 +69,8 @@ class MessageParser {
     this.actionProvider = actionProvider;
   }
 
-  parse(message: string) {
-    const normalized = message.toLowerCase();
-    if (normalized.includes("hola") || normalized.includes("buen")) {
-      this.actionProvider.greet();
-      return;
-    }
-    this.actionProvider.defaultResponse();
+  async parse(message: string) {
+    await this.actionProvider.handleMessage(message);
   }
 }
 
@@ -68,7 +80,7 @@ export function ChatbotWidget() {
       botName: "Asistente Urbano",
       initialMessages: [
         createChatBotMessage("Hola, soy tu asistente urbano.", {}),
-        createChatBotMessage("Puedo ayudarte con preguntas sobre los incidentes.", {}),
+        createChatBotMessage("Puedo ayudarte con preguntas sobre los incidentes, barrios y datos en el mapa.", {}),
       ],
       placeholderText: "Escribe tu pregunta...",
     }),

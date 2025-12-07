@@ -20,10 +20,29 @@ const {
 } = process.env;
 
 const SYSTEM_MESSAGE =
-  "You are a helpful UrbanAI assistant. Respond in clear, readable English. Use concise paragraphs and bullet lists when useful. Keep SQL outputs readable.";
+  "Eres el asistente de UrbanAI. Responde en español claro y en texto plano (sin markdown, listas ni código). Usa solo la base de datos Postgres disponible. Las tablas principales son: incidents (radicate_number/filing_number, image_path, location_latitude, location_longitude, citizen_email, additional_comment, caption, ai_description, category, severity, status, priority, created_at, attention_date, municipality_id, leader_id). No inventes otras tablas ni columnas. Si no tienes suficiente información, pide un dato adicional en lugar de ejecutar consultas inválidas.";
 
 const formatUserMessage = (text = "") =>
   `User request:\n${text}\n\nReturn a clear, concise answer.`;
+
+const parseToolRequest = (content) => {
+  if (!content || typeof content !== "string") return null;
+  let text = content.trim();
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) {
+    text = fenced[1].trim();
+  }
+  try {
+    const parsed = JSON.parse(text);
+    const payload = parsed.tool_request || parsed;
+    if (payload?.name === "query" && payload.arguments) {
+      return payload;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 const toReadable = (content) => {
   let value = content;
@@ -164,18 +183,31 @@ app.use(express.json());
 app.post("/chat", async (req, res) => {
   const userMessage = req.body?.message || "Hello";
   try {
-    const first = await callLms(
+    const completion = await callLms(
       [
         { role: "system", content: SYSTEM_MESSAGE },
         { role: "user", content: formatUserMessage(userMessage) },
       ],
       tools
     );
-    const choice = first.choices?.[0];
-    const toolCall = choice?.message?.tool_calls?.[0];
 
-    if (toolCall?.function?.name === "query") {
-      const rawArgs = toolCall.function.arguments;
+    const choice = completion.choices?.[0];
+    const toolCall = choice?.message?.tool_calls?.[0];
+    const parsedTool = parseToolRequest(choice?.message?.content);
+
+    const activeToolCall = parsedTool
+      ? {
+          id: "content-tool-call",
+          type: "function",
+          function: {
+            name: parsedTool.name,
+            arguments: JSON.stringify(parsedTool.arguments),
+          },
+        }
+      : toolCall;
+
+    if (activeToolCall?.function?.name === "query") {
+      const rawArgs = activeToolCall.function.arguments;
       let sql = "";
       if (typeof rawArgs === "string") {
         try {
@@ -192,22 +224,20 @@ app.post("/chat", async (req, res) => {
       const queryResult = await callMcpQuery(sql);
       const readable = toReadable(queryResult?.content?.[0]?.text ?? queryResult);
 
-      const second = await callLms(
-        [
-          { role: "system", content: SYSTEM_MESSAGE },
-          { role: "user", content: formatUserMessage(userMessage) },
-          { role: "assistant", tool_calls: [toolCall] },
-          {
-            role: "tool",
-            tool_call_id: toolCall.id || "call-1",
-            content: readable,
-          },
-        ],
-        tools
-      );
+      const second = await callLms([
+        { role: "system", content: SYSTEM_MESSAGE },
+        { role: "user", content: formatUserMessage(userMessage) },
+        { role: "assistant", tool_calls: [activeToolCall] },
+        {
+          role: "tool",
+          tool_call_id: activeToolCall.id || "call-1",
+          content: readable,
+        },
+      ]);
 
       const reply =
-        second.choices?.[0]?.message?.content || readable;
+        second.choices?.[0]?.message?.content ||
+        "No response available right now.";
       res.json({ reply });
       return;
     }
