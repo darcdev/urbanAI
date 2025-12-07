@@ -32,6 +32,10 @@ services:
       - Keycloak__BaseUrl=http://identity-keycloak:8080
       - Keycloak__AdminUrl=http://identity-keycloak:8080/admin/realms/${PROJECT_NAME}/
       - Keycloak__TokenUrl=http://identity-keycloak:8080/realms/${PROJECT_NAME}/protocol/openid-connect/token
+      - Kapso__BaseUrl=${KAPSO_BASE_URL}
+      - Kapso__ApiKey=${KAPSO_API_KEY}
+      - Kapso__PhoneNumberId=${KAPSO_PHONE_NUMBER_ID}
+      - Kapso__Secret=${KAPSO_SECRET}
     restart: on-failure
     networks:
       - network-public
