@@ -18,10 +18,9 @@ services:
         condition: service_healthy
     ports:
       - "${API_HTTP_PORT}:8080"
-      - "${API_HTTPS_PORT}:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ASPNETCORE_URLS=http://+:8080
     restart: unless-stopped
     networks:
       - urbanai-network
