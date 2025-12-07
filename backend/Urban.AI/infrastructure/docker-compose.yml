@@ -125,18 +125,14 @@ services:
       start_period: 10s
 
   identity-keycloak:
-    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
+    image: quay.io/keycloak/keycloak:24.0
     container_name: keycloak.identity
     restart: on-failure
     command: start-dev --import-realm
-    env_file:
-      - keycloak.env
     environment:
-      - KC_HEALTH_ENABLED=true
-      - KC_METRICS_ENABLED=true
-      - KC_HTTP_ENABLED=true
-      - KC_HOSTNAME_STRICT=false
-      - KC_PROXY_HEADERS=xforwarded
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_PROXY=edge
     volumes:
       - vol_keycloak_data:/opt/keycloak/data
       - ./resources/application-realm-export.json:/opt/keycloak/data/import/realm.json
