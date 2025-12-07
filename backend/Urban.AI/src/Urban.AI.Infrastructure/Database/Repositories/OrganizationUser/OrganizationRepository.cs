@@ -33,4 +33,24 @@ internal sealed class OrganizationRepository : Repository<DomainOrganization>, I
             .Where(e => e.IsActive)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<(IEnumerable<DomainOrganization> Organizations, int TotalCount)> GetOrganizationsWithPaginationAsync(
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Set<DomainOrganization>()
+            .Include(o => o.User)
+            .AsQueryable();
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var organizations = await query
+            .OrderBy(o => o.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (organizations, totalCount);
+    }
 }

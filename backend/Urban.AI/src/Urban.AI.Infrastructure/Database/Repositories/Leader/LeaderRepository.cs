@@ -80,4 +80,38 @@ internal sealed class LeaderRepository : Repository<Leader>, ILeaderRepository
     {
         return degrees * Math.PI / 180.0;
     }
+
+    public async Task<(IEnumerable<Leader> Leaders, int TotalCount)> GetLeadersWithPaginationAsync(
+        int pageNumber,
+        int pageSize,
+        Guid? departmentId,
+        Guid? municipalityId,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Set<Leader>()
+            .Include(l => l.User)
+            .Include(l => l.Department)
+            .Include(l => l.Municipality)
+            .AsQueryable();
+
+        if (departmentId.HasValue)
+        {
+            query = query.Where(l => l.DepartmentId == departmentId.Value);
+        }
+
+        if (municipalityId.HasValue)
+        {
+            query = query.Where(l => l.MunicipalityId == municipalityId.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var leaders = await query
+            .OrderBy(l => l.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (leaders, totalCount);
+    }
 }
