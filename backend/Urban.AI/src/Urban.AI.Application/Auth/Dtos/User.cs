@@ -5,4 +5,5 @@ public record User(
     string Email,
     bool IsEmailVerified,
     DateTime CreatedAt,
-    UserDetailsResponse? UserDetails);
+    UserDetailsResponse? UserDetails,
+    List<string> Roles);

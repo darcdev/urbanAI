@@ -25,9 +25,9 @@ internal sealed class CompleteUserProfileHandler : ICommandHandler<CompleteUserP
 
     public async Task<Result> Handle(CompleteUserProfileCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userContext.UserId;
+        var email = _userContext.Email;
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
         if (user is null) return Result.Failure(UserErrors.NotFound);
         if (user.UserDetails is not null) return Result.Failure(UserErrors.UserDetailsAlreadyCompleted);
 

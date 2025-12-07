@@ -10,8 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 #endregion
 
-//[Authorize(Roles = "Admin")]
-[Authorize]
+[Authorize(Roles = "Admin")]
 [ApiController]
 [ApiVersion(ApiVersions.V1)]
 [Route("api/v{version:apiVersion}/organizations")]

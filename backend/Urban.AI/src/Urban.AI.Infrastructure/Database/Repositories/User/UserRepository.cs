@@ -47,4 +47,11 @@ internal sealed class UserRepository : Repository<User>, IUserRepository
             .Include(u => u.UserDetails)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
+
+    public async Task<User?> GetByEmailWithDetailsAsync(string email, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Users
+            .Include(u => u.UserDetails)
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+    }
 }

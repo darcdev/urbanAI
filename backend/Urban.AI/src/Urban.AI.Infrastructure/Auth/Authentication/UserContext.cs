@@ -14,11 +14,11 @@ internal sealed class UserContext : IUserContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid UserId =>
+    public string Email =>
         _httpContextAccessor
             .HttpContext?
             .User
-            .GetUserId() ??
+            .GetEmail() ??
         throw new ApplicationException("User context is unavailable");
 
     public string IdentityId =>
@@ -27,4 +27,10 @@ internal sealed class UserContext : IUserContext
             .User
             .GetIdentityId() ??
         throw new ApplicationException("User context is unavailable");
+
+    public List<string> Roles =>
+        _httpContextAccessor
+            .HttpContext?
+            .User
+            .GetUserRoles() ?? [];
 }

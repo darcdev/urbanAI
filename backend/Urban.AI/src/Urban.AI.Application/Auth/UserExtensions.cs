@@ -7,14 +7,15 @@ using Urban.AI.Domain.Users.ValueObjects;
 
 internal static class UserExtensions
 {
-    public static Dtos.User ToDto(this User user)
+    public static Dtos.User ToDto(this User user, List<string> roles)
     {
         return new Dtos.User(
             user.Id,
             user.Email,
             user.IsEmailVerified,
             user.CreatedAt,
-            user.UserDetails?.ToDto()
+            user.UserDetails?.ToDto(),
+            roles
         );
     }
 
