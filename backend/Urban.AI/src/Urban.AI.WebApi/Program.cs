@@ -47,13 +47,19 @@ RouteGroupBuilder versionedGroup = app
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerWithUi();
-    app.ApplyMigrations();
-
-    // REMARK: Uncomment if you want to seed initial data.
-    // app.SeedData();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsProduction())
+{
+    app.ApplyMigrations();
+}
+
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseExceptionHandler();
 
