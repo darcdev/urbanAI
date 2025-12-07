@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { ChatbotWidget } from "./ChatbotWidget";
 import { Modal } from "../../../shared/Modal";
 
-// Type for HeatMap props
 type HeatMapProps = {
   incidents: Array<{
     id: number | string;
