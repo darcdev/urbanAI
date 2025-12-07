@@ -20,6 +20,7 @@ import {
   Search,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { incidentsService } from "@/lib/api"
 
 type LeafletMap = {
   setView: (coords: [number, number], zoom?: number) => void
@@ -226,35 +227,60 @@ export default function DashboardPage() {
       }
     }
 
-    const photoUrl = photoPreview || undefined
+    try {
+      // Extract pure base64 string (remove data:image/...;base64, prefix)
+      const base64Image = photoPreview.includes(',') 
+        ? photoPreview.split(',')[1] 
+        : photoPreview;
+      
+      console.log("📸 Image preview length:", photoPreview.length);
+      console.log("📸 Base64 image length:", base64Image.length);
+      
+      // Create incident via API
+      const createdIncident = await incidentsService.create({
+        Image: base64Image, // Pure base64 string without prefix
+        Latitude: finalLocation.lat,
+        Longitude: finalLocation.lng,
+        CitizenEmail: email.trim() || "",
+        AdditionalComment: description.trim() || "",
+      })
 
-    const newIncident: Incident = {
-      id: `incident-${Date.now()}`,
-      code: generateCode(),
-      name: "Reporte fotográfico",
-      description: description.trim() || undefined,
-      latitude: finalLocation.lat,
-      longitude: finalLocation.lng,
-      photoUrl,
-      createdAt: new Date().toISOString(),
+      console.log("✅ Incident created successfully:", createdIncident)
+
+      // Also save to localStorage for display (until we implement getAll)
+      const newIncident: Incident = {
+        id: createdIncident.id.toString(),
+        code: generateCode(),
+        name: "Reporte fotográfico",
+        description: createdIncident.AdditionalComment || undefined,
+        latitude: createdIncident.Latitude,
+        longitude: createdIncident.Longitude,
+        photoUrl: createdIncident.Image,
+        createdAt: createdIncident.createdAt,
+      }
+      
+      saveIncident(newIncident)
+
+      if (email.trim()) {
+        localStorage.setItem("userEmail", email.trim())
+      }
+
+      setSuccess(`Incidente reportado con éxito`)
+      setEmail(email.trim())
+      setDescription("")
+      setLocation(null)
+      setPhoto(null)
+      setPhotoPreview(null)
+      setLoading(false)
+      setShowModal(false)
+
+      setTimeout(() => setSuccess(""), 4000)
+    } catch (error) {
+      console.error("❌ Error creating incident:", error)
+      const errorMessage = error instanceof Error ? error.message : "Error al crear el incidente"
+      setError(errorMessage)
+      setLoading(false)
     }
-
-    saveIncident(newIncident)
-
-    if (email.trim()) {
-      localStorage.setItem("userEmail", email.trim())
-    }
-
-    setSuccess(`Incidente ${newIncident.code} reportado con éxito`)
-    setEmail(email.trim())
-    setDescription("")
-    setLocation(null)
-    setPhoto(null)
-    setPhotoPreview(null)
-    setLoading(false)
-    setShowModal(false)
-
-    setTimeout(() => setSuccess(""), 4000)
   }
 
   useEffect(() => {
