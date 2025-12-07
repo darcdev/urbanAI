@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
+import { authService } from "@/lib/api/auth.service"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -23,23 +25,19 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, email, password }),
+      await authService.register({
+        email,
+        firstName,
+        lastName,
+        password,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || "Error al registrar")
-      } else {
-        router.push("/login")
-      }
+      // Registro exitoso - redirigir al dashboard o login
+      router.push("/dashboard")
+      router.refresh()
     } catch (error) {
-      setError("Error al registrar usuario")
+      const errorMessage = error instanceof Error ? error.message : "Error al registrar usuario"
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -64,13 +62,24 @@ export default function RegisterPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre</Label>
+              <Label htmlFor="firstName">Nombre</Label>
               <Input
-                id="name"
+                id="firstName"
                 type="text"
                 placeholder="Tu nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Apellido</Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Tu apellido"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 required
               />
             </div>

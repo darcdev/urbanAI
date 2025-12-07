@@ -13,7 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Modal } from "../shared/Modal";
+import { Modal } from "../../../shared/Modal";
 
 const allIncidents = [
   {

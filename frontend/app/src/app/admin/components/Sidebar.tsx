@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { 
   Home,
   ChevronLeft,
@@ -28,7 +29,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
 
   return (
     <>
-      {/* Overlay para móvil */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden"
@@ -36,7 +36,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`bg-white fixed lg:relative inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-sidebar-background transition-all duration-300 ease-in-out ${
           isCollapsed ? "lg:w-16" : "lg:w-64"
@@ -44,7 +43,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         } w-64`}
       >
-        {/* Logo Section */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
@@ -71,6 +69,13 @@ export function Sidebar({ isOpen, isCollapsed, onClose, onToggleCollapse }: Side
             <ChevronLeft className={`hidden lg:block h-5 w-5 text-sidebar-foreground transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
           </button>
         </div>
+
+        <Image
+          src="/images/Logo.png"
+          alt="UrbanAI Logo"
+          width={40}
+          height={40}
+        />
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3">

@@ -1,1 +1,0 @@
-export { IncidentDetailModal } from './IncidentDetailModal';

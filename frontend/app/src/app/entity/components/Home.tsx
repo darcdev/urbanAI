@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Search, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Modal } from "../shared/Modal";
+import { Modal } from "../../../shared/Modal";
 
 // Type for HeatMap props
 type HeatMapProps = {
