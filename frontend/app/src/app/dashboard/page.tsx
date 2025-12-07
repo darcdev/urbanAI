@@ -563,7 +563,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="w-full md:w-auto md:absolute md:top-6 md:right-6 md:bottom-6 md:max-w-[520px] md:min-w-[320px] bg-white/85 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl z-20 mt-4 md:mt-0">
+          <div className="w-full md:w-auto md:absolute md:top-6 md:right-6 md:bottom-6 md:max-w-[620px] md:min-w-[320px] bg-white/85 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl z-20 mt-4 md:mt-0">
             <Card className="w-full h-full flex flex-col rounded-xl shadow-sm border border-border/60 bg-white/95 md:max-h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -619,26 +619,20 @@ export default function DashboardPage() {
 
                 {showFilters && (
                   <div className="p-4 bg-muted rounded-xl border space-y-3">
-                    <div className="flex gap-2 flex-wrap">
-                      <Button
-                        variant={selectedCategory === "all" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedCategory("all")}
-                        className="rounded-lg"
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Categorías</p>
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full h-10 rounded-lg border border-border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                       >
-                      Todas
-                      </Button>
-                      {categories.map((cat) => (
-                        <Button
-                          key={cat.label}
-                          variant={selectedCategory === cat.label ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedCategory(cat.label)}
-                          className="rounded-lg"
-                        >
-                          {cat.icon} {cat.label}
-                        </Button>
-                      ))}
+                        <option value="all">Todas</option>
+                        {categories.map((cat) => (
+                          <option key={cat.label} value={cat.label}>
+                            {cat.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 )}
