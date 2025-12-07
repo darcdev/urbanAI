@@ -42,8 +42,13 @@ internal static class IncidentExtensions
             subcategory.Name);
     }
 
-    private static LeaderDto ToDto(this Leader leader)
+    private static LeaderDto? ToDto(this Leader? leader)
     {
+        if (leader?.User == null)
+        {
+            return null;
+        }
+
         return new LeaderDto(
             leader.Id,
             $"{leader.User.FirstName} {leader.User.LastName}",

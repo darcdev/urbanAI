@@ -117,11 +117,18 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
 
         foreach (var incident in incidents)
         {
-            if (incident.Leader?.User != null)
+            if (incident.Leader != null)
             {
-                await _dbContext.Entry(incident.Leader.User)
-                    .Reference(u => u.UserDetails)
+                await _dbContext.Entry(incident.Leader)
+                    .Reference(l => l.User)
                     .LoadAsync(cancellationToken);
+
+                if (incident.Leader.User != null)
+                {
+                    await _dbContext.Entry(incident.Leader.User)
+                        .Reference(u => u.UserDetails)
+                        .LoadAsync(cancellationToken);
+                }
             }
         }
 
