@@ -1,4 +1,4 @@
-namespace Urban.AI.Application.Incidents.AcceptIncident;
+namespace Urban.AI.Application.Incidents.UpdateIncidentStatus;
 
 #region Usings
 using Urban.AI.Application.Common.Abstractions.CQRS;
@@ -6,12 +6,12 @@ using Urban.AI.Domain.Common.Abstractions;
 using Urban.AI.Domain.Incidents;
 #endregion
 
-internal sealed class AcceptIncidentHandler : ICommandHandler<AcceptIncidentCommand>
+internal sealed class UpdateIncidentStatusHandler : ICommandHandler<UpdateIncidentStatusCommand>
 {
     private readonly IIncidentRepository _incidentRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public AcceptIncidentHandler(
+    public UpdateIncidentStatusHandler(
         IIncidentRepository incidentRepository,
         IUnitOfWork unitOfWork)
     {
@@ -19,7 +19,7 @@ internal sealed class AcceptIncidentHandler : ICommandHandler<AcceptIncidentComm
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> Handle(AcceptIncidentCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateIncidentStatusCommand request, CancellationToken cancellationToken)
     {
         var incident = await _incidentRepository.GetByIdAsync(request.IncidentId, cancellationToken);
         if (incident is null)
@@ -27,7 +27,20 @@ internal sealed class AcceptIncidentHandler : ICommandHandler<AcceptIncidentComm
             return Result.Failure(IncidentErrors.NotFound);
         }
 
-        incident.Accept(request.Priority);
+        switch (request.Status)
+        {
+            case IncidentStatus.Accepted:
+                var priority = request.Priority ?? IncidentPriority.NotEstablished;
+                incident.Accept(priority);
+                break;
+
+            case IncidentStatus.Rejected:
+                incident.Reject();
+                break;
+
+            default:
+                return Result.Failure(new Error("InvalidStatus", "Invalid status value"));
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
