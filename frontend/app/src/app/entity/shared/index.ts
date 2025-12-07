@@ -1,1 +1,1 @@
-export { IncidentDetailModal } from './IncidentDetailModal';
+export { Modal } from './Modal';
