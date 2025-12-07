@@ -38,7 +38,7 @@ export function IncidentPanel({
                 <CardDescription>Listado de la comunidad</CardDescription>
               </div>
             </div>
-            <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+            <div className="px-3 py-1 bg-primary/10 text-primary rounded-md text-sm font-semibold">
               {filteredIncidents.length} visibles
             </div>
           </div>

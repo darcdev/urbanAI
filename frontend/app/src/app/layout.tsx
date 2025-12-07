@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "UrbanAI - Registro de Incidentes",
   description: "Sistema de registro de incidentes urbanos",
+  icons: {
+    icon: '/images/logo-icon.png',
+    shortcut: '/images/logo-icon.png',
+    apple: '/images/logo-icon.png',
+  },
 };
 
 export default function RootLayout({

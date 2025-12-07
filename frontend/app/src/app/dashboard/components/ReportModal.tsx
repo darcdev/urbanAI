@@ -71,7 +71,7 @@ export function ReportModal({
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                className="h-9 w-9 rounded-md hover:bg-destructive/10 hover:text-destructive"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -178,7 +178,7 @@ export function ReportModal({
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute -top-2 -right-2 h-8 w-8 rounded-full"
+                          className="absolute -top-2 -right-2 h-8 w-8 rounded-md"
                           onClick={onRemovePhoto}
                         >
                           <X className="h-4 w-4" />

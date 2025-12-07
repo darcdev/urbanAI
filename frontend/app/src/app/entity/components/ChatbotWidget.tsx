@@ -21,60 +21,71 @@ type CreateMessage = typeof createChatBotMessage;
 type ChatState = { messages: unknown[] };
 type SetChatState = React.Dispatch<React.SetStateAction<ChatState>>;
 
-class ActionProvider {
-  createChatBotMessage: CreateMessage;
-  setStateFunc: SetChatState;
-
-  constructor(createChatBotMessage: CreateMessage, setStateFunc: SetChatState) {
-    this.createChatBotMessage = createChatBotMessage;
-    this.setStateFunc = setStateFunc;
-  }
-
-  async handleMessage(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-
-    const pending = this.createChatBotMessage("Analizando tu consulta...", {});
-    const pendingId = (pending as { id?: string | number }).id;
-
-    this.setStateFunc((prev) => ({
-      ...prev,
-      messages: [...prev.messages, pending],
-    }));
-
-    try {
-      const reply = await chatService.sendMessage(trimmed);
-      this.setStateFunc((prev) => ({
-        ...prev,
-        messages: prev.messages.map((msg: any) =>
-          msg.id === pendingId ? { ...msg, message: reply } : msg
-        ),
-      }));
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "No pude responder ahora.";
-      this.setStateFunc((prev) => ({
-        ...prev,
-        messages: prev.messages.map((msg: any) =>
-          msg.id === pendingId ? { ...msg, message: `Error: ${reason}` } : msg
-        ),
-      }));
-    }
-  }
-}
-
-class MessageParser {
-  actionProvider: ActionProvider;
-
-  constructor(actionProvider: ActionProvider) {
-    this.actionProvider = actionProvider;
-  }
-
-  async parse(message: string) {
-    await this.actionProvider.handleMessage(message);
-  }
-}
-
 export function ChatbotWidget() {
+  const sessionId = useMemo(() => {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    return Math.random().toString(36).slice(2);
+  }, []);
+
+  const ActionProviderWithSession = useMemo(() => {
+    return class ActionProvider {
+      createChatBotMessage: CreateMessage;
+      setStateFunc: SetChatState;
+
+      constructor(createChatBotMessage: CreateMessage, setStateFunc: SetChatState) {
+        this.createChatBotMessage = createChatBotMessage;
+        this.setStateFunc = setStateFunc;
+      }
+
+      async handleMessage(text: string) {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+
+        const pending = this.createChatBotMessage("Analizando tu consulta...", {});
+        const pendingId = (pending as { id?: string | number }).id;
+
+        this.setStateFunc((prev) => ({
+          ...prev,
+          messages: [...prev.messages, pending],
+        }));
+
+        try {
+          const reply = await chatService.sendMessage(trimmed, sessionId);
+          this.setStateFunc((prev) => ({
+            ...prev,
+            messages: prev.messages.map((msg: any) =>
+              msg.id === pendingId ? { ...msg, message: reply } : msg
+            ),
+          }));
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : "No pude responder ahora.";
+          this.setStateFunc((prev) => ({
+            ...prev,
+            messages: prev.messages.map((msg: any) =>
+              msg.id === pendingId ? { ...msg, message: `Error: ${reason}` } : msg
+            ),
+          }));
+        }
+      }
+    };
+  }, [sessionId]);
+
+  const MessageParserWithSession = useMemo(() => {
+    return class MessageParser {
+      actionProvider: InstanceType<typeof ActionProviderWithSession>;
+
+      constructor(actionProvider: InstanceType<typeof ActionProviderWithSession>) {
+        this.actionProvider = actionProvider;
+      }
+
+      async parse(message: string) {
+        await this.actionProvider.handleMessage(message);
+      }
+    };
+  }, [ActionProviderWithSession]);
+
   const config = useMemo(
     () => ({
       botName: "Asistente Urbano",
@@ -90,7 +101,7 @@ export function ChatbotWidget() {
   return (
     <div className="w-full max-w-sm sm:max-w-md md:w-[340px] lg:w-[400px] h-[70vh] sm:h-[72vh] md:h-[520px] max-h-[82vh] min-h-[360px] rounded-xl border border-border bg-card text-card-foreground shadow-elevated overflow-hidden flex flex-col">
       <div className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-foreground/15 text-primary-foreground">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/15 text-primary-foreground">
           <Bot className="h-5 w-5" />
         </div>
         <div className="leading-tight">
@@ -99,7 +110,7 @@ export function ChatbotWidget() {
         </div>
       </div>
       <div className="flex-1 chatbot-shell">
-        <ChatbotTyped config={config} messageParser={MessageParser} actionProvider={ActionProvider} />
+        <ChatbotTyped config={config} messageParser={MessageParserWithSession} actionProvider={ActionProviderWithSession} />
       </div>
       <style jsx global>{`
         .chatbot-shell {
