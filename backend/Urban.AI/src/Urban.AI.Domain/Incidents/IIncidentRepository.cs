@@ -10,4 +10,5 @@ public interface IIncidentRepository : IRepository<Incident>
     Task<IEnumerable<Incident>> GetByMunicipalityIdAsync(Guid municipalityId, CancellationToken cancellationToken);
     Task<IEnumerable<Incident>> GetByStatusAsync(IncidentStatus status, CancellationToken cancellationToken);
     Task<IEnumerable<Incident>> GetAllIncidentsAsync(CancellationToken cancellationToken);
+    Task<IEnumerable<Incident>> GetByGeographyAsync(Guid? departmentId, Guid? municipalityId, CancellationToken cancellationToken);
 }

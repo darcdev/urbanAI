@@ -9,6 +9,7 @@ using Urban.AI.Application.Incidents.UpdateIncidentStatus;
 using Urban.AI.Domain.Incidents;
 using Urban.AI.Application.Incidents.GetAllIncidents;
 using Urban.AI.Application.Incidents.GetLeaderIncidents;
+using Urban.AI.Application.Incidents.GetIncidentsByGeography;
 using Urban.AI.WebApi.Controllers.Common;
 using Urban.AI.WebApi.Controllers.Incidents.Dtos;
 using MediatR;
@@ -165,6 +166,27 @@ public class IncidentsController(ISender sender) : ApiController
     public async Task<IActionResult> GetLeaderIncidents(CancellationToken cancellationToken)
     {
         var query = new GetLeaderIncidentsQuery();
+        var result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return Ok(result.Value);
+    }
+
+    [Authorize(Roles = "Organization")]
+    [HttpGet("by-geography")]
+    [ProducesResponseType(typeof(List<IncidentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetIncidentsByGeography(
+        [FromQuery] Guid? departmentId,
+        [FromQuery] Guid? municipalityId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetIncidentsByGeographyQuery(departmentId, municipalityId);
         var result = await _sender.Send(query, cancellationToken);
 
         if (result.IsFailure)

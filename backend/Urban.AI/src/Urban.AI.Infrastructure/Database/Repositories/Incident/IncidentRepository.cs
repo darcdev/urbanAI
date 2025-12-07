@@ -81,4 +81,50 @@ internal sealed class IncidentRepository : Repository<Incident>, IIncidentReposi
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<Incident>> GetByGeographyAsync(
+        Guid? departmentId,
+        Guid? municipalityId,
+        CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Set<Incident>()
+            .Include(i => i.Municipality)
+            .Include(i => i.Leader)
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
+            .AsQueryable();
+
+        if (municipalityId.HasValue)
+        {
+            query = query.Where(i => i.MunicipalityId == municipalityId.Value);
+        }
+        else if (departmentId.HasValue)
+        {
+            var departmentDaneCode = await _dbContext.Set<Urban.AI.Domain.Geography.Department>()
+                .Where(d => d.Id == departmentId.Value)
+                .Select(d => d.DepartmentDaneCode)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (!string.IsNullOrEmpty(departmentDaneCode))
+            {
+                query = query.Where(i => i.Municipality.DepartmentDaneCode == departmentDaneCode);
+            }
+        }
+
+        var incidents = await query
+            .OrderByDescending(i => i.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        foreach (var incident in incidents)
+        {
+            if (incident.Leader?.User != null)
+            {
+                await _dbContext.Entry(incident.Leader.User)
+                    .Reference(u => u.UserDetails)
+                    .LoadAsync(cancellationToken);
+            }
+        }
+
+        return incidents;
+    }
 }
