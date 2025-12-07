@@ -3,6 +3,7 @@ namespace Urban.AI.Infrastructure.Database.Repositories.Leader;
 #region Usings
 using Urban.AI.Domain.Leaders;
 using Microsoft.EntityFrameworkCore;
+using Urban.AI.Domain.Common.Abstractions;
 #endregion
 
 internal sealed class LeaderRepository : Repository<Leader>, ILeaderRepository
