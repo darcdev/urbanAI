@@ -1,7 +1,6 @@
 namespace Urban.AI.Infrastructure.Auth.Authorization;
 
 #region Usings
-using Urban.AI.Application.Common.Abstractions.Caching;
 using Urban.AI.Domain.Users;
 using Urban.AI.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -10,23 +9,15 @@ using Microsoft.EntityFrameworkCore;
 internal sealed class AuthorizationService
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly ICacheService _cacheService;
 
-    public AuthorizationService(ApplicationDbContext dbContext, ICacheService cacheService)
+    public AuthorizationService(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
-        _cacheService = cacheService;
     }
 
     public async Task<UserRolesResponse> GetRolesForUserAsync(string identityId)
     {
         var cacheKey = $"auth:roles-{identityId}";
-        UserRolesResponse? cachedRoles = await _cacheService.GetAsync<UserRolesResponse>(cacheKey);
-
-        if (cachedRoles is not null)
-        {
-            return cachedRoles;
-        }
 
         UserRolesResponse roles = await _dbContext.Set<User>()
             .Where(u => u.IdentityId == identityId)
@@ -37,20 +28,12 @@ internal sealed class AuthorizationService
             })
             .FirstAsync();
 
-        await _cacheService.SetAsync(cacheKey, roles);
-
         return roles;
     }
 
     public async Task<HashSet<string>> GetPermissionsForUserAsync(string identityId)
     {
         var cacheKey = $"auth:permissions-{identityId}";
-        HashSet<string>? cachedPermissions = await _cacheService.GetAsync<HashSet<string>>(cacheKey);
-
-        if (cachedPermissions is not null)
-        {
-            return cachedPermissions;
-        }
 
         ICollection<Permission> permissions = await _dbContext.Set<User>()
             .Where(u => u.IdentityId == identityId)
@@ -58,8 +41,6 @@ internal sealed class AuthorizationService
             .FirstAsync();
 
         var permissionsSet = permissions.Select(p => p.Name).ToHashSet();
-
-        await _cacheService.SetAsync(cacheKey, permissionsSet);
 
         return permissionsSet;
     }

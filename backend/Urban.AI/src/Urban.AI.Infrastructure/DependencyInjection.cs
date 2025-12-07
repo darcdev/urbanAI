@@ -10,20 +10,22 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Minio;
 using Urban.AI.Application.Common.Abstractions.Authentication;
-using Urban.AI.Application.Common.Abstractions.Caching;
 using Urban.AI.Application.Common.Abstractions.Clock;
+using Urban.AI.Application.Common.Abstractions.Email;
 using Urban.AI.Application.Common.Abstractions.Storage;
 using Urban.AI.Domain.Common.Abstractions;
 using Urban.AI.Domain.Geography;
+using Urban.AI.Domain.Leaders;
 using Urban.AI.Domain.Users;
 using Urban.AI.Infrastructure.Auth.Authentication;
 using Urban.AI.Infrastructure.Auth.Authorization;
-using Urban.AI.Infrastructure.Caching;
 using Urban.AI.Infrastructure.Clock;
 using Urban.AI.Infrastructure.Database;
 using Urban.AI.Infrastructure.Database.Config;
 using Urban.AI.Infrastructure.Database.Repositories.Geography;
+using Urban.AI.Infrastructure.Database.Repositories.Leader;
 using Urban.AI.Infrastructure.Database.Repositories.User;
+using Urban.AI.Infrastructure.Email;
 using Urban.AI.Infrastructure.Storage;
 using Urban.AI.Infrastructure.Storage.OptionsSetup;
 using AuthenticationOptions = Auth.Authentication.AuthenticationOptions;
@@ -39,6 +41,7 @@ public static class DependencyInjection
     private const string MinioOptionsSectionName = "Minio";
     private const string AuthenticationOptionsSectionName = "Authentication";
     private const string KeycloakOptionsSectionName = "Keycloak";
+    private const string EmailOptionsSectionName = "Email";
     #endregion
 
     public static IServiceCollection AddInfrastructure(
@@ -54,6 +57,7 @@ public static class DependencyInjection
         AddAuthorization(services);
         AddCaching(services, configuration);
         AddStorage(services, configuration);
+        AddEmail(services, configuration);
 
         return services;
     }
@@ -77,6 +81,7 @@ public static class DependencyInjection
     private static void AddRepositories(IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ILeaderRepository, LeaderRepository>();
     }
 
     private static void AddGeographyRepositories(IServiceCollection services)
@@ -135,8 +140,6 @@ public static class DependencyInjection
                                   throw new ArgumentNullException(nameof(configuration));
 
         services.AddStackExchangeRedisCache(options => options.Configuration = connectionString);
-
-        services.AddSingleton<ICacheService, CacheService>();
     }
 
     private static void AddStorage(IServiceCollection services, IConfiguration configuration)
@@ -153,6 +156,12 @@ public static class DependencyInjection
             .Build());
 
         services.AddScoped<IStorageService, MinioStorageService>();
+    }
+
+    private static void AddEmail(IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptionsSectionName));
+        services.AddScoped<IEmailService, EmailService>();
     }
     #endregion
 
