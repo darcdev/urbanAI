@@ -2,11 +2,15 @@ namespace Urban.AI.WebApi.Controllers.Incidents;
 
 #region Usings
 using Asp.Versioning;
+using Urban.AI.Application.Incidents.AcceptIncident;
 using Urban.AI.Application.Incidents.CreateIncident;
 using Urban.AI.Application.Incidents.Dtos;
+using Urban.AI.Application.Incidents.RejectIncident;
+using Urban.AI.Domain.Incidents;
 using Urban.AI.WebApi.Controllers.Common;
 using Urban.AI.WebApi.Controllers.Incidents.Dtos;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 #endregion
 
@@ -67,5 +71,50 @@ public class IncidentsController(ISender sender) : ApiController
         }
 
         return Created(string.Empty, result.Value);
+    }
+
+    [Authorize(Roles = "Leader")]
+    [HttpPatch("{incidentId:guid}/accept")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AcceptIncident(
+        [FromRoute] Guid incidentId,
+        [FromBody] AcceptIncidentRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new AcceptIncidentCommand(incidentId, request.Priority);
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return NoContent();
+    }
+
+    [Authorize(Roles = "Leader")]
+    [HttpPatch("{incidentId:guid}/reject")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RejectIncident(
+        [FromRoute] Guid incidentId,
+        CancellationToken cancellationToken)
+    {
+        var command = new RejectIncidentCommand(incidentId);
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return NoContent();
     }
 }
