@@ -40,7 +40,106 @@ interface Incident {
   longitude: number
   photoUrl?: string
   category?: string
+  status?: string
   createdAt: string
+}
+
+type ApiIncident = {
+  id?: string
+  radicateNumber?: string
+  radicate_number?: string
+  filing_number?: string
+  imageUrl?: string
+  image_path?: string
+  location_latitude?: number
+  locationLatitude?: number
+  location_longitude?: number
+  locationLongitude?: number
+  latitude?: number
+  longitude?: number
+  citizenEmail?: string | null
+  additionalComment?: string | null
+  aiDescription?: string | null
+  category?: { name?: string | null } | null
+  subcategory?: { name?: string | null } | null
+  status?: string
+  priority?: string
+  createdAt?: string
+  created_at?: string
+}
+
+const getStatusBadge = (status?: string) => {
+  const value = (status || "").toLowerCase()
+  if (value === "pending" || value === "notestablished")
+    return { text: "Pendiente", className: "bg-amber-100 text-amber-800 border-amber-200" }
+  if (value === "rejected")
+    return { text: "Rechazado", className: "bg-red-100 text-red-800 border-red-200" }
+  if (value === "approved")
+    return { text: "Aprobado", className: "bg-emerald-100 text-emerald-800 border-emerald-200" }
+  if (value === "inprogress" || value === "in_progress")
+    return { text: "En progreso", className: "bg-blue-100 text-blue-800 border-blue-200" }
+  if (value === "completed" || value === "done")
+    return { text: "Completado", className: "bg-green-100 text-green-800 border-green-200" }
+  return { text: "Sin estado", className: "bg-slate-100 text-slate-700 border-slate-200" }
+}
+
+const getNumber = (raw: Record<string, unknown>, keys: string[], fallback = 0) => {
+  for (const key of keys) {
+    const value = raw[key]
+    if (typeof value === "number") return value
+    if (typeof value === "string") {
+      const num = Number(value)
+      if (!Number.isNaN(num)) return num
+    }
+  }
+  return fallback
+}
+
+const getString = (raw: Record<string, unknown>, keys: string[], fallback = "") => {
+  for (const key of keys) {
+    const value = raw[key]
+    if (typeof value === "string") return value
+    if (typeof value === "number") return String(value)
+  }
+  return fallback
+}
+
+const getOptionalString = (raw: Record<string, unknown>, keys: string[]) => {
+  for (const key of keys) {
+    const value = raw[key]
+    if (typeof value === "string") return value
+    if (typeof value === "number") return String(value)
+  }
+  return undefined
+}
+
+const mapApiIncident = (raw: ApiIncident): Incident => {
+  const record = raw as Record<string, unknown>
+  const fallbackId = Math.random().toString(36).slice(2)
+  const id = getString(record, ["id", "radicateNumber", "radicate_number", "filing_number"], fallbackId)
+  const lat = getNumber(record, ["locationLatitude", "location_latitude", "Latitude", "latitude"], 0)
+  const lng = getNumber(record, ["locationLongitude", "location_longitude", "Longitude", "longitude"], 0)
+
+  return {
+    id,
+    code: getString(record, ["radicateNumber", "radicate_number", "filing_number", "id"], id || "INC"),
+    name:
+      getOptionalString(record, ["caption"]) ||
+      raw.category?.name ||
+      raw.subcategory?.name ||
+      "Incidente",
+    description:
+      getOptionalString(record, ["additionalComment", "aiDescription", "description"]) ||
+      raw.subcategory?.name ||
+      undefined,
+    latitude: Number.isFinite(lat) ? lat : 0,
+    longitude: Number.isFinite(lng) ? lng : 0,
+    photoUrl:
+      getOptionalString(record, ["imageUrl", "image_path", "imagePath", "photoUrl"]) || undefined,
+    category: raw.category?.name || raw.subcategory?.name || getOptionalString(record, ["category"]),
+    status: getOptionalString(record, ["status"]),
+    createdAt: getString(record, ["created_at", "createdAt"], new Date().toISOString()),
+  }
 }
 
 const categories = [
@@ -76,7 +175,7 @@ export default function DashboardPage() {
     marker?: LeafletMarker
   }>({})
 
-  const loadIncidents = useCallback(() => {
+  const loadIncidents = useCallback(async () => {
     const now = new Date().toISOString()
     const seed: Incident[] = [
       { id: "seed-1", code: "INC-1201", name: "Reporte fotográfico", description: "Hueco grande en la vía principal", latitude: 4.7109, longitude: -74.0721, createdAt: now },
@@ -96,6 +195,20 @@ export default function DashboardPage() {
       { id: "seed-15", code: "INC-1215", name: "Reporte fotográfico", description: "Arqueta rota en la vía", latitude: 4.7159, longitude: -74.0725, createdAt: now },
     ]
 
+    try {
+      const remote = await incidentsService.getAll()
+      const mapped = Array.isArray(remote)
+        ? (remote as ApiIncident[]).map((item) => mapApiIncident(item))
+        : []
+      if (mapped.length > 0) {
+        setIncidents(mapped)
+        localStorage.setItem("incidents", JSON.stringify(mapped))
+        return
+      }
+    } catch {
+      // fallback to seed
+    }
+
     const stored = localStorage.getItem("incidents")
     if (stored) {
       try {
@@ -106,13 +219,11 @@ export default function DashboardPage() {
             combined.push(s)
           }
         })
-        if (combined.length < 15) {
-          localStorage.setItem("incidents", JSON.stringify(combined))
-        }
+        localStorage.setItem("incidents", JSON.stringify(combined))
         setIncidents(combined)
         return
       } catch {
-        // fallthrough to seed reset
+        // reset to seed
       }
     }
 
@@ -256,7 +367,7 @@ export default function DashboardPage() {
         latitude: createdIncident.Latitude,
         longitude: createdIncident.Longitude,
         photoUrl: createdIncident.Image,
-        createdAt: createdIncident.createdAt,
+        createdAt: createdIncident.createdAt || new Date().toISOString(),
       }
       
       saveIncident(newIncident)
@@ -315,12 +426,17 @@ export default function DashboardPage() {
   }, [])
 
   const filteredIncidents = incidents.filter((incident) => {
-      const matchCategory =
-        selectedCategory === "all" || (incident.category || "Sin categoría") === selectedCategory
-    const matchCode = searchCode.trim()
-      ? incident.code.toLowerCase().includes(searchCode.trim().toLowerCase())
-      : true
-    return matchCategory && matchCode
+    const matchCategory =
+      selectedCategory === "all" || (incident.category || "Sin categoría") === selectedCategory
+    const term = searchCode.trim().toLowerCase()
+    const matchTerm =
+      term.length === 0 ||
+      incident.code.toLowerCase().includes(term) ||
+      incident.name.toLowerCase().includes(term) ||
+      (incident.description || "").toLowerCase().includes(term) ||
+      (incident.status || "").toLowerCase().includes(term) ||
+      (incident.category || "").toLowerCase().includes(term)
+    return matchCategory && matchTerm
   })
 
   useEffect(() => {
@@ -447,7 +563,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="w-full md:w-auto md:absolute md:top-6 md:right-6 md:bottom-6 md:max-w-[420px] md:min-w-[320px] bg-white/85 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl z-20 mt-4 md:mt-0">
+          <div className="w-full md:w-auto md:absolute md:top-6 md:right-6 md:bottom-6 md:max-w-[520px] md:min-w-[320px] bg-white/85 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl z-20 mt-4 md:mt-0">
             <Card className="w-full h-full flex flex-col rounded-xl shadow-sm border border-border/60 bg-white/95 md:max-h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -530,8 +646,9 @@ export default function DashboardPage() {
                 <div className="overflow-hidden rounded-xl border border-border/80 flex-1 min-h-0">
                   <div className="grid grid-cols-12 bg-muted/70 text-sm font-semibold text-muted-foreground px-3 py-2">
                     <div className="col-span-3">Código</div>
-                    <div className="col-span-5">Nombre</div>
-                    <div className="col-span-4 text-right">Fecha</div>
+                    <div className="col-span-4">Nombre</div>
+                    <div className="col-span-3">Estado</div>
+                    <div className="col-span-2 text-right">Fecha</div>
                   </div>
                   {filteredIncidents.length === 0 ? (
                     <div className="p-6 text-center text-muted-foreground text-sm">
@@ -546,8 +663,20 @@ export default function DashboardPage() {
                           onClick={() => flyToIncident(incident)}
                         >
                           <div className="col-span-3 font-semibold text-primary">{incident.code}</div>
-                          <div className="col-span-5">{incident.name}</div>
-                          <div className="col-span-4 text-right text-muted-foreground">
+                          <div className="col-span-4">{incident.name}</div>
+                          <div className="col-span-3">
+                            {(() => {
+                              const badge = getStatusBadge(incident.status)
+                              return (
+                                <span
+                                  className={`inline-flex min-w-[104px] justify-center items-center rounded-full border px-3.5 py-1.5 text-[12px] font-semibold leading-tight ${badge.className}`}
+                                >
+                                  {badge.text}
+                                </span>
+                              )
+                            })()}
+                          </div>
+                          <div className="col-span-2 text-right text-muted-foreground">
                             {new Date(incident.createdAt).toLocaleDateString("es-ES", {
                               day: "2-digit",
                               month: "2-digit",
