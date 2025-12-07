@@ -8,10 +8,9 @@ public sealed record IncidentResponse(
     decimal Longitude,
     string? CitizenEmail,
     string? AdditionalComment,
-    string? Caption,
     string? AiDescription,
-    string? Category,
-    string? Severity,
+    CategoryDto? Category,
+    SubcategoryDto? Subcategory,
     string Status,
     string Priority,
     DateTime CreatedAt);

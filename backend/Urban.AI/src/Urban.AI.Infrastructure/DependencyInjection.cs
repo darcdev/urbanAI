@@ -47,6 +47,7 @@ public static class DependencyInjection
     private const string AuthenticationOptionsSectionName = "Authentication";
     private const string KeycloakOptionsSectionName = "Keycloak";
     private const string EmailOptionsSectionName = "Email";
+    private const string GeminiOptionsSectionName = "Gemini";
     #endregion
 
     public static IServiceCollection AddInfrastructure(
@@ -58,7 +59,7 @@ public static class DependencyInjection
         AddDatabase(services, configuration);
         AddRepositories(services);
         AddGeographyRepositories(services);
-        AddAIServices(services);
+        AddAIServices(services, configuration);
         AddAuthentication(services, configuration);
         AddAuthorization(services);
         AddCaching(services, configuration);
@@ -89,6 +90,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ILeaderRepository, LeaderRepository>();
         services.AddScoped<IIncidentRepository, IncidentRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ISubcategoryRepository, SubcategoryRepository>();
         services.AddScoped<IOrganizationRepository, OrganizationRepository>();
     }
 
@@ -99,9 +102,11 @@ public static class DependencyInjection
         services.AddScoped<ITownshipRepository, TownshipRepository>();
     }
 
-    private static void AddAIServices(IServiceCollection services)
+    private static void AddAIServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IIncidentAnalysisService, FakeIncidentAnalysisService>();
+        services.Configure<AI.Gemini.GeminiOptions>(configuration.GetSection(GeminiOptionsSectionName));
+
+        services.AddHttpClient<IIncidentAnalysisService, AI.Gemini.GeminiIncidentAnalysisService>();
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)

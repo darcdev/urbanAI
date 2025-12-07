@@ -48,10 +48,9 @@ public sealed class Incident : Entity
     public Location Location { get; private set; }
     public string? CitizenEmail { get; private set; }
     public string? AdditionalComment { get; private set; }
-    public string? Caption { get; private set; }
     public string? AiDescription { get; private set; }
-    public IncidentCategory? Category { get; private set; }
-    public IncidentSeverity? Severity { get; private set; }
+    public Guid? CategoryId { get; private set; }
+    public Guid? SubcategoryId { get; private set; }
     public IncidentStatus Status { get; private set; }
     public IncidentPriority Priority { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -61,6 +60,8 @@ public sealed class Incident : Entity
 
     public Municipality Municipality { get; private set; }
     public Leader? Leader { get; private set; }
+    public Category? Category { get; private set; }
+    public Subcategory? Subcategory { get; private set; }
 
     public static Incident Create(
         string radicateNumber,
@@ -83,10 +84,9 @@ public sealed class Incident : Entity
 
     public void SetAnalysis(IncidentAnalysis analysis)
     {
-        Caption = analysis.Caption;
         AiDescription = analysis.Description;
-        Category = analysis.Category;
-        Severity = analysis.Severity;
+        CategoryId = analysis.CategoryId;
+        SubcategoryId = analysis.SubcategoryId;
     }
 
     public void Accept(IncidentPriority priority)

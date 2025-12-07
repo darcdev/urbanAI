@@ -1,4 +1,5 @@
 #region Usings
+using System.Globalization;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using CommunityToolkit.HighPerformance;
@@ -8,6 +9,9 @@ using Urban.AI.Infrastructure.Storage.OptionsSetup;
 using Urban.AI.WebApi.Configurations.Extensions;
 using Urban.AI.WebApi.Configurations.OpenApi;
 #endregion
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -2,10 +2,10 @@ namespace Urban.AI.WebApi.Controllers.Incidents;
 
 #region Usings
 using Asp.Versioning;
-using Urban.AI.Application.Incidents.AcceptIncident;
+using Urban.AI.Application.Categories.SeedCategories;
 using Urban.AI.Application.Incidents.CreateIncident;
 using Urban.AI.Application.Incidents.Dtos;
-using Urban.AI.Application.Incidents.RejectIncident;
+using Urban.AI.Application.Incidents.UpdateIncidentStatus;
 using Urban.AI.Domain.Incidents;
 using Urban.AI.WebApi.Controllers.Common;
 using Urban.AI.WebApi.Controllers.Incidents.Dtos;
@@ -74,18 +74,44 @@ public class IncidentsController(ISender sender) : ApiController
     }
 
     [Authorize(Roles = "Leader")]
-    [HttpPatch("{incidentId:guid}/accept")]
+    [HttpPatch("{incidentId:guid}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> AcceptIncident(
+    public async Task<IActionResult> UpdateIncidentStatus(
         [FromRoute] Guid incidentId,
-        [FromBody] AcceptIncidentRequest request,
+        [FromBody] UpdateIncidentStatusRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new AcceptIncidentCommand(incidentId, request.Priority);
+        if (!Enum.TryParse<IncidentStatus>(request.Status, true, out var status))
+        {
+            return BadRequest($"Invalid status value. Allowed values: {string.Join(", ", Enum.GetNames<IncidentStatus>())}");
+        }
+
+        if (status == IncidentStatus.Pending)
+        {
+            return BadRequest("Cannot set status to Pending. Use Accepted or Rejected.");
+        }
+
+        IncidentPriority? priority = null;
+        if (status == IncidentStatus.Accepted)
+        {
+            if (string.IsNullOrWhiteSpace(request.Priority))
+            {
+                return BadRequest("Priority is required when accepting an incident.");
+            }
+
+            if (!Enum.TryParse<IncidentPriority>(request.Priority, true, out var parsedPriority))
+            {
+                return BadRequest($"Invalid priority value. Allowed values: {string.Join(", ", Enum.GetNames<IncidentPriority>())}");
+            }
+
+            priority = parsedPriority;
+        }
+
+        var command = new UpdateIncidentStatusCommand(incidentId, status, priority);
         var result = await _sender.Send(command, cancellationToken);
 
         if (result.IsFailure)
@@ -96,18 +122,13 @@ public class IncidentsController(ISender sender) : ApiController
         return NoContent();
     }
 
-    [Authorize(Roles = "Leader")]
-    [HttpPatch("{incidentId:guid}/reject")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize]
+    [HttpPost("seed-categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RejectIncident(
-        [FromRoute] Guid incidentId,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> SeedCategories(CancellationToken cancellationToken)
     {
-        var command = new RejectIncidentCommand(incidentId);
+        var command = new SeedCategoriesCommand();
         var result = await _sender.Send(command, cancellationToken);
 
         if (result.IsFailure)
@@ -115,6 +136,6 @@ public class IncidentsController(ISender sender) : ApiController
             return HandleFailure(result);
         }
 
-        return NoContent();
+        return Ok(new { Message = "Categories seeded successfully" });
     }
 }

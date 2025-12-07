@@ -26,17 +26,19 @@ internal sealed class CreateIncidentInputValidation : AbstractValidator<CreateIn
             .WithMessage(IncidentResources.IncidentImageFilenameRequired);
 
         RuleFor(x => x.Request.Latitude)
-            .InclusiveBetween(MinLatitude, MaxLatitude)
+            .Must(lat => lat >= MinLatitude && lat <= MaxLatitude)
             .WithMessage(IncidentResources.IncidentInvalidLatitude);
 
         RuleFor(x => x.Request.Longitude)
-            .InclusiveBetween(MinLongitude, MaxLongitude)
+            .Must(lon => lon >= MinLongitude && lon <= MaxLongitude)
             .WithMessage(IncidentResources.IncidentInvalidLongitude);
 
-        RuleFor(x => x.Request.CitizenEmail)
-            .EmailAddress()
-            .WithMessage(IncidentResources.IncidentInvalidEmail)
-            .When(x => !string.IsNullOrWhiteSpace(x.Request.CitizenEmail));
+        When(x => !string.IsNullOrWhiteSpace(x.Request.CitizenEmail), () =>
+        {
+            RuleFor(x => x.Request.CitizenEmail)
+                .EmailAddress()
+                .WithMessage(IncidentResources.IncidentInvalidEmail);
+        });
 
         RuleFor(x => x.Request.AdditionalComment)
             .MaximumLength(Incident.CommentMaxLength)

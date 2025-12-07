@@ -17,12 +17,26 @@ internal static class IncidentExtensions
             incident.Location.Longitude,
             incident.CitizenEmail,
             incident.AdditionalComment,
-            incident.Caption,
             incident.AiDescription,
-            incident.Category?.ToString(),
-            incident.Severity?.ToString(),
+            incident.Category?.ToDto(),
+            incident.Subcategory?.ToDto(),
             incident.Status.ToString(),
             incident.Priority.ToString(),
             incident.CreatedAt);
+    }
+
+    private static CategoryDto ToDto(this Category category)
+    {
+        return new CategoryDto(
+            category.Id,
+            category.Code,
+            category.Name);
+    }
+
+    private static SubcategoryDto ToDto(this Subcategory subcategory)
+    {
+        return new SubcategoryDto(
+            subcategory.Id,
+            subcategory.Name);
     }
 }
